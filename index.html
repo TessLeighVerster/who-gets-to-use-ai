@@ -57,12 +57,6 @@
   .btn:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
   .btn.primary{background:var(--accent);color:#1a1206;border-color:var(--accent);font-weight:600}
   .btn.primary:hover{filter:brightness(1.08)}
-  #timebox{display:flex;align-items:center;gap:12px}
-  #timebox .yr{font-size:22px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;min-width:3.2ch}
-  #time{-webkit-appearance:none;appearance:none;width:200px;height:6px;border-radius:3px;background:rgba(255,255,255,.14);outline:none}
-  #time::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);border:3px solid #1a1206;box-shadow:0 0 0 2px var(--accent);cursor:pointer}
-  #time::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:3px solid #1a1206;box-shadow:0 0 0 2px var(--accent);cursor:pointer}
-  #timebox .ticks{display:flex;justify-content:space-between;width:200px;font-size:11px;color:var(--muted);margin-top:4px}
 
   /* ---------- side panel ---------- */
   #panel{position:fixed;top:24px;right:24px;bottom:24px;width:var(--panel-w);z-index:6;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:22px;background:var(--panel);backdrop-filter:blur(14px);transition:transform .35s var(--ease),width .35s var(--ease);overflow:hidden}
@@ -177,9 +171,20 @@
   #powerKey .modes button.on{color:var(--accent);background:var(--accent-dim)}
   #powerKey{position:fixed;left:auto;right:calc(var(--panel-w) + 72px);bottom:104px;z-index:5;display:none;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);backdrop-filter:blur(10px);font-size:13px;color:var(--muted);animation:fade .3s var(--ease);min-width:270px}
   #powerKey.show{display:flex}
-  #powerKey .pkh{display:flex;flex-direction:column;gap:2px;margin-bottom:2px}
+  #powerKey .pkh{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-4px -6px 0;padding:4px 6px;border-radius:10px;text-align:left;color:var(--muted);transition:background .2s var(--ease)}
+  #powerKey .pkh:hover{background:rgba(255,255,255,.05)}
+  #powerKey .pkt{display:flex;flex-direction:column;gap:3px;min-width:0}
   #powerKey .pkh b{color:var(--text);font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:12px}
-  #powerKey .pkh span{font-size:12px}
+  #powerKey .pkh .sub{font-size:12px}
+  #powerKey .strip{display:none;align-items:center;gap:3px;font-size:11px}
+  #powerKey .strip i{width:14px;height:9px;border-radius:2px;display:inline-block}
+  #powerKey .strip em{font-style:normal;margin-left:6px;white-space:nowrap}
+  #powerKey .chev{font-size:20px;line-height:1;transform:rotate(-90deg);transition:transform .25s var(--ease);flex:none;color:var(--muted)}
+  #powerKey.collapsed .chev{transform:rotate(90deg)}
+  #powerKey .pkb{display:flex;flex-direction:column;gap:8px}
+  #powerKey.collapsed .pkb,#powerKey.collapsed .sub{display:none}
+  #powerKey.collapsed .strip{display:flex}
+  #powerKey.collapsed{min-width:0;gap:0;padding:10px 12px}
   #powerKey ul{list-style:none;display:grid;gap:5px}
   #powerKey li{display:grid;grid-template-columns:22px 92px 1fr;align-items:center;gap:8px}
   #powerKey li i{width:18px;height:12px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
@@ -259,7 +264,7 @@
     #legend h4{font-size:11px;margin-bottom:5px}
     #controls{bottom:24px}
   }
-  @media (max-height:820px) and (min-width:901px) and (max-width:1750px){ #controls{bottom:118px} #powerKey{bottom:196px} #time{width:130px} #timebox .ticks{display:none} #timebox .yr{font-size:18px} }
+  @media (max-height:820px) and (min-width:901px) and (max-width:1750px){ #controls{bottom:118px} #powerKey{bottom:196px} }
   /* collapsed panel (wide) */
   body.pcol #panel{width:60px}
   body.pcol #panel #tabs,body.pcol #panel #content,body.pcol #panel #pins,body.pcol #panel .note{display:none}
@@ -279,13 +284,10 @@
     #ticker .l{font-size:11px}
     #legend{display:none}
     #controls{left:12px;right:auto;bottom:10px;padding:8px 10px;gap:10px}
-    #time{width:120px}
     #nav{gap:6px;transform:translateY(-50%) scale(.85);transform-origin:right center}
     .toggle .long{display:none} .toggle .short{display:inline}
     .seg .long{display:none} .seg .short{display:inline}
     #powerKey{display:none!important}
-    #timebox .ticks{display:none}
-    #timebox .yr{font-size:16px}
     #hint{display:none}
     .stat .n{font-size:20px}
   }
@@ -312,11 +314,6 @@
     #soundToggle{margin-left:auto}
     #ticker .rate{display:none}
     .toggle{padding:7px 9px;font-size:14px;gap:8px}
-    #timebox{flex:1 1 100%;min-width:0;gap:8px;order:2}
-    #timebox > div{flex:1;min-width:0}
-    #time{width:100%}
-    #timebox .ticks{display:none}
-    #timebox .yr{font-size:18px;min-width:auto}
     .toggle .long{display:none} .toggle .short{display:inline}
     .seg .long{display:none} .seg .short{display:inline}
     .seg button{padding:7px 9px;font-size:14px}
@@ -370,10 +367,6 @@
   <button class="toggle" id="contToggle" aria-pressed="false"><span class="pill"></span><span class="long">Continents</span><span class="short">Cont.</span></button>
   <div class="seg" id="layerSeg" role="group" aria-label="Map layer" title="Recolour the land: electricity (P) or data cost (D)">
     <button data-layer="none" class="on">Usage</button><button data-layer="power">Power</button><button data-layer="data"><span class="long">Data cost</span><span class="short">Data</span></button>
-  </div>
-  <div id="timebox">
-    <div><input id="time" type="range" min="0" max="4" step="1" value="4" aria-label="Year"><div class="ticks"><span>2022</span><span>2023</span><span>2024</span><span>2025</span><span>2026</span></div></div>
-    <span class="yr" id="yearLabel">2026</span>
   </div>
   <button class="btn icon" id="soundToggle" aria-pressed="false" title="Sound (S)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="w1" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="w2" d="M18.5 5.5a9 9 0 0 1 0 13"/><path class="mute" d="m17 9 4 4m0-4-4 4"/></svg></button>
 </div>
@@ -1220,10 +1213,14 @@ function setLayer(name, quiet){
   const key = $("#powerKey"); key.classList.toggle("show", name !== "none");
   if (name !== "none"){
     const L = LAYERS[name];
-    key.innerHTML = `<div class="pkh"><b>${L.title}</b><span>${L.sub}</span></div>` +
+    const strip = L.bands.map(b => `<i style="background:${hexCss(b.hex)}" title="${b.label}"></i>`).join("");
+    key.innerHTML = `<button class="pkh" id="keyToggle" aria-expanded="${!state.keyCollapsed}" title="Show or hide the key"><span class="pkt"><b>${L.title}</b><span class="strip">${strip}<em>${L.bands[0].label} → ${L.bands[L.bands.length-1].label}</em></span><span class="sub">${L.sub}</span></span><span class="chev">›</span></button>` +
+      `<div class="pkb">` +
       (L.modes ? `<div class="modes">${L.modes.map(m => `<button data-mode="${m[0]}" class="${m[0]===name?"on":""}">${m[1]}</button>`).join("")}</div>` : "") +
-      `<ul>${L.bands.map(b => `<li><i style="background:${hexCss(b.hex)}"></i><b>${b.label}</b><span>${b.examples}</span></li>`).join("")}<li><i style="background:#2a2f3d"></i><b>no data</b><span>far from any listed country</span></li></ul><em>${L.note}</em>`;
-    key.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => setLayer(b.dataset.mode));
+      `<ul>${L.bands.map(b => `<li><i style="background:${hexCss(b.hex)}"></i><b>${b.label}</b><span>${b.examples}</span></li>`).join("")}<li><i style="background:#2a2f3d"></i><b>no data</b><span>far from any listed country</span></li></ul><em>${L.note}</em></div>`;
+    key.querySelectorAll("[data-mode]").forEach(b => b.onclick = e => { e.stopPropagation(); setLayer(b.dataset.mode); });
+    key.classList.toggle("collapsed", !!state.keyCollapsed);
+    $("#keyToggle").onclick = () => { state.keyCollapsed = !state.keyCollapsed; key.classList.toggle("collapsed", state.keyCollapsed); $("#keyToggle").setAttribute("aria-expanded", !state.keyCollapsed); try { localStorage.setItem("keyCollapsed", state.keyCollapsed ? "1" : "0"); } catch(_){} };
   }
   if (!quiet) sfx.toggle();
 }
@@ -1425,7 +1422,7 @@ function stepArcs(now){
 }
 
 /* app state */
-const state = { mode:"countries", year:4, selected:null, selectedDC:null, hovered:null, pinned:[], built:false, tab:"usage", layer:"none" };
+const state = { mode:"countries", year:4, selected:null, selectedDC:null, hovered:null, pinned:[], built:false, tab:"usage", layer:"none", keyCollapsed: (() => { try { const v = localStorage.getItem("keyCollapsed"); if (v !== null) return v === "1"; } catch(_){} return window.matchMedia("(max-width:900px)").matches; })() };
 function targetBricks(t){
   if (t.isCity) return (state.mode === "countries" && t.cityOf && state.selected === t.cityOf) ? t.n * t.cityOf.growthCurve[state.year] : 0;
   const on = (state.mode==="continents") === t.isContinent; return on ? t.n * t.ref.growthCurve[state.year] : 0;
@@ -1559,7 +1556,7 @@ const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _n = new THREE.Vector3
 function toScreen(v){ v.project(camera); v.x = (v.x+1)/2*window.innerWidth; v.y = (1-v.y)/2*window.innerHeight; return v; }
 let lastSegT = 0;
 function segDist(px,py, ax,ay, bx,by){ const dx=bx-ax, dy=by-ay, l2=dx*dx+dy*dy; let t = l2>0 ? ((px-ax)*dx+(py-ay)*dy)/l2 : 0; t=clamp(t,0,1); lastSegT = t; const x=ax+dx*t, y=ay+dy*t; return Math.hypot(px-x,py-y); }
-const _seg = new THREE.Vector3(), _cl = new THREE.Vector3();
+const _seg = new THREE.Vector3(), _cl = new THREE.Vector3(), _cl2 = new THREE.Vector3();
 function pointHiddenBySphere(P){   // is the segment camera→P blocked by the globe?
   _seg.copy(P).sub(_cam); const l2 = _seg.lengthSq(); if (l2 < 1e-9) return false;
   const tt = clamp(-_cam.dot(_seg)/l2, 0, 1); _cl.copy(_cam).addScaledVector(_seg, tt);
@@ -1572,13 +1569,24 @@ function hitTest(px, py){
   for (const t of towers){
     if (t.v < 0.05) continue;
     _a.copy(t.pos).applyQuaternion(world.quaternion); _n.copy(t.normal).applyQuaternion(world.quaternion);
-    _b.copy(_a).addScaledVector(_n, Math.min(t.v, t.n)*t.dims.h);
-    if (pointHiddenBySphere(_a) && pointHiddenBySphere(_b)) continue;      // both ends behind the globe
+    const len = Math.min(t.v, t.n)*t.dims.h;
+    _b.copy(_a).addScaledVector(_n, len);
+    if (pointHiddenBySphere(_a)){
+      if (pointHiddenBySphere(_b)) continue;                                // wholly behind the globe: never clickable
+      // base is behind the horizon but the top peeks over it: only the visible part of the tower may be clicked
+      let lo = 0, hi = 1;
+      for (let i=0;i<8;i++){ const mid = (lo+hi)/2; _cl2.copy(_a).addScaledVector(_n, len*mid); if (pointHiddenBySphere(_cl2)) lo = mid; else hi = mid; }
+      _a.addScaledVector(_n, len*hi);
+    }
     const halfW = t.dims.w*0.5*pxPerUnitAt(_a);                             // on-screen half width of the brick body
     const za = _a.z, zb = _b.z;
     toScreen(_a); toScreen(_b);
     const d = segDist(px,py,_a.x,_a.y,_b.x,_b.y) - halfW;                   // distance from the tower's body, not its centre line
-    if (d < pad + 8 && d < bestScore){ bestScore = d; best = {type:"tower", t}; bestDepth = view.dist - lerp(za, zb, lastSegT); }
+    if (d >= pad + 8) continue;
+    const depth = view.dist - lerp(za, zb, lastSegT);
+    // inside two overlapping towers → the one nearer the camera (the one you can see); otherwise the closer edge
+    const better = !best || (d <= 0 && bestScore <= 0 ? depth < bestDepth : d < bestScore);
+    if (better){ bestScore = d; best = {type:"tower", t}; bestDepth = depth; }
   }
   // data centres are tested too; the pointer being inside a data-centre brick beats a nearby tower's margin
   let dcBest = null, dcScore = 1e9, dcDepth = 1e9;
@@ -1969,10 +1977,7 @@ function setMode(mode){
 $("#contToggle").addEventListener("click", () => setMode(state.mode === "continents" ? "countries" : "continents"));
 document.querySelectorAll("#layerSeg button").forEach(b => b.addEventListener("click", () => setLayer(b.dataset.layer === "data" && state.layer === "dataShare" ? "dataShare" : b.dataset.layer)));
 $("#soundToggle").addEventListener("click", () => { sfx.set(!sfx.on); if (sfx.on) sfx.pin(); });
-$("#time").addEventListener("input", e => {
-  state.year = +e.target.value; $("#yearLabel").textContent = YEARS[state.year];
-  retarget(650, false); drawPins();
-});
+/* the year slider was removed; the data still carries growthCurve, and state.year stays at 4 (today) */
 function resetView(){ select(null); view.tPanX = view.tPanY = 0; view.autoPan = false; view.tDist = view.maxDist; view.tPitch = 12*deg; let d = 58*deg - view.tYaw; d = Math.atan2(Math.sin(d),Math.cos(d)); view.tYaw += d; view.flying = true; view.lastInteract = performance.now(); }
 
 /* =====================================================================================
