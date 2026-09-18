@@ -6,8 +6,8 @@
 <title>Who gets to use AI?</title>
 <style>
   :root{
-    --bg:#07080c; --panel:rgba(14,16,24,0.82); --line:rgba(255,255,255,0.10);
-    --text:#f4f4f2; --muted:rgba(244,244,242,0.62); --accent:#f4c76b; --accent-dim:rgba(244,199,107,0.18);
+    --bg:#07080c; --panel:rgba(24,24,27,0.72); --line:rgba(255,255,255,0.08); --fill:rgba(120,120,128,0.22); --fill-strong:rgba(255,255,255,0.14); --glass:blur(28px) saturate(170%); --shadow:0 12px 40px rgba(0,0,0,.38);
+    --text:#f5f5f7; --muted:rgba(245,245,247,0.6); --accent:#f5f5f7; --accent-dim:rgba(255,255,255,0.10);
     --ease:cubic-bezier(.22,.8,.3,1); --panel-w:420px;
     --c-anthropic:#d97757; --c-openai:#f5f5f0; --c-google:#4285f4; --c-meta:#6366f1; --c-mistral:#ff6a00; --c-deepseek:#2dd4bf; --c-local:#8a8f98;
     --o-aws:#f59e0b; --o-microsoft:#7fba00; --o-google:#4285f4; --o-meta:#6366f1; --o-oracle:#f0453a; --o-other:#e879f9;
@@ -22,10 +22,10 @@
 
   /* ---------- title block ---------- */
   #title{position:fixed;left:36px;top:32px;max-width:560px;pointer-events:none;z-index:5}
-  #title h1{font-size:clamp(34px,4.2vw,58px);line-height:1.02;letter-spacing:-0.02em;font-weight:700;text-shadow:0 2px 24px rgba(0,0,0,.6)}
+  #title h1{font-size:clamp(34px,4.2vw,58px);line-height:1.04;letter-spacing:-0.025em;font-weight:600;text-shadow:0 2px 24px rgba(0,0,0,.5)}
   #title p{margin-top:12px;font-size:clamp(16px,1.35vw,20px);line-height:1.4;color:var(--muted);max-width:460px}
-  #ticker{margin-top:18px;display:inline-flex;align-items:baseline;gap:10px;padding:10px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);backdrop-filter:blur(10px);pointer-events:auto}
-  #ticker .n{font-variant-numeric:tabular-nums;font-size:clamp(20px,1.9vw,28px);font-weight:700;color:var(--accent);min-width:8ch}
+  #ticker{margin-top:18px;display:inline-flex;align-items:baseline;gap:10px;padding:10px 16px;border:1px solid var(--line);border-radius:16px;background:var(--panel);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);box-shadow:var(--shadow);pointer-events:auto}
+  #ticker .n{font-variant-numeric:tabular-nums;font-size:clamp(20px,1.9vw,28px);font-weight:600;letter-spacing:-0.02em;color:var(--text);min-width:8ch}
   #ticker .l{font-size:14px;color:var(--muted);line-height:1.25}
   #ticker{position:relative;padding-right:40px}
   #tickerHide{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:8px;font-size:16px;line-height:1;color:var(--muted);border:1px solid transparent;opacity:.55;transition:all .2s var(--ease)}
@@ -36,8 +36,8 @@
   body.noticker #tickerShow{display:inline-block}
 
   /* ---------- legend ---------- */
-  #legend{position:fixed;left:36px;bottom:32px;z-index:5;display:flex;gap:28px;padding:16px 20px;border:1px solid var(--line);border-radius:16px;background:var(--panel);backdrop-filter:blur(10px)}
-  #legend h4{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-weight:600}
+  #legend{position:fixed;left:36px;bottom:32px;z-index:5;display:flex;gap:28px;padding:16px 20px;border:1px solid var(--line);border-radius:18px;background:var(--panel);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);box-shadow:var(--shadow)}
+  #legend h4{font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:500}
   #legend ul{list-style:none;display:grid;grid-template-columns:repeat(2,auto);gap:6px 18px}
   #legend li{display:flex;align-items:center;gap:8px;font-size:15px;white-space:nowrap}
   .sw{width:14px;height:10px;border-radius:3px;position:relative;flex:none;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
@@ -46,40 +46,39 @@
   .sw.dc::after{display:none}
 
   /* ---------- bottom controls ---------- */
-  #controls{position:fixed;right:calc(var(--panel-w) + 72px);bottom:32px;z-index:5;display:flex;align-items:center;gap:18px;padding:12px 18px;border:1px solid var(--line);border-radius:18px;background:var(--panel);backdrop-filter:blur(10px);transition:transform .35s var(--ease)}
-  .toggle{display:flex;align-items:center;gap:10px;font-size:15px;padding:8px 12px;border-radius:12px;border:1px solid var(--line);transition:all .25s var(--ease)}
-  .toggle .pill{width:38px;height:22px;border-radius:11px;background:rgba(255,255,255,.12);position:relative;transition:background .25s var(--ease)}
-  .toggle .pill::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .25s var(--ease)}
-  .toggle.on{border-color:var(--accent);color:var(--accent)}
-  .toggle.on .pill{background:var(--accent)}
-  .toggle.on .pill::after{transform:translateX(16px);background:#1a1206}
-  .btn{padding:8px 14px;border-radius:12px;border:1px solid var(--line);font-size:15px;transition:all .25s var(--ease)}
+  #controls{position:fixed;right:calc(var(--panel-w) + 72px);bottom:32px;z-index:5;display:flex;align-items:center;gap:14px;padding:10px 12px;border:1px solid var(--line);border-radius:18px;background:var(--panel);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);box-shadow:var(--shadow);transition:transform .35s var(--ease)}
+  .toggle{display:flex;align-items:center;gap:10px;font-size:15px;padding:6px 8px;border-radius:12px;border:0;color:var(--text);transition:all .25s var(--ease)}
+  .toggle .pill{width:40px;height:24px;border-radius:12px;background:rgba(120,120,128,.36);position:relative;transition:background .25s var(--ease)}
+  .toggle .pill::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform .25s var(--ease)}
+  .toggle.on{color:var(--text)}
+  .toggle.on .pill{background:#e5e5ea}
+  .toggle.on .pill::after{transform:translateX(16px);background:#1c1c1e}
+  .btn{padding:8px 14px;border-radius:12px;border:1px solid var(--line);font-size:15px;color:var(--text);transition:all .25s var(--ease)}
   .btn:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.05)}
-  .btn.primary{background:var(--accent);color:#1a1206;border-color:var(--accent);font-weight:600}
-  .btn.primary:hover{filter:brightness(1.08)}
+  .btn.primary{background:#f5f5f7;color:#111;border-color:#f5f5f7;font-weight:600;border-radius:980px}
+  .btn.primary:hover{background:#fff}
 
   /* ---------- side panel ---------- */
-  #panel{position:fixed;top:24px;right:24px;bottom:24px;width:var(--panel-w);z-index:6;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:22px;background:var(--panel);backdrop-filter:blur(14px);transition:transform .35s var(--ease),width .35s var(--ease);overflow:hidden}
+  #panel{position:fixed;top:24px;right:24px;bottom:24px;width:var(--panel-w);z-index:6;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:22px;background:var(--panel);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);box-shadow:var(--shadow);transition:transform .35s var(--ease),width .35s var(--ease);overflow:hidden}
   #panel .head{display:flex;align-items:center;gap:6px;padding:14px 14px 0 14px}
-  #tabs{display:flex;gap:6px;flex:1}
-  .tab{flex:1;padding:10px 6px;border-radius:12px;font-size:15px;font-weight:600;color:var(--muted);border:1px solid transparent;transition:all .25s var(--ease)}
+  #tabs{display:flex;gap:2px;flex:1;padding:2px;border-radius:12px;background:var(--fill)}
+  .tab{flex:1;padding:8px 6px;border-radius:10px;font-size:14px;font-weight:500;color:var(--muted);border:0;transition:all .25s var(--ease)}
   .tab:hover{color:var(--text)}
-  .tab.active{color:var(--accent);background:var(--accent-dim);border-color:rgba(244,199,107,.35)}
+  .tab.active{color:var(--text);background:var(--fill-strong);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.3)}
   #collapse{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);font-size:18px;line-height:1;transition:all .25s var(--ease)}
   #collapse:hover{border-color:rgba(255,255,255,.3)}
-  .searchbox{display:flex;align-items:center;gap:8px;margin:10px 14px 0;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.04);color:var(--muted);transition:border-color .2s var(--ease)}
-  .searchbox:focus-within{border-color:rgba(244,199,107,.5);color:var(--accent)}
+  .searchbox{display:flex;align-items:center;gap:8px;margin:10px 14px 0;padding:0 12px;border:1px solid transparent;border-radius:12px;background:var(--fill);color:var(--muted);transition:all .2s var(--ease)}
+  .searchbox:focus-within{border-color:rgba(255,255,255,.35);color:var(--text)}
   .searchbox input{flex:1;background:none;border:0;outline:0;color:var(--text);font:inherit;font-size:15px;padding:10px 0;min-width:0}
   .searchbox input::placeholder{color:var(--muted)}
   .searchbox input::-webkit-search-cancel-button{-webkit-appearance:none;width:14px;height:14px;background:radial-gradient(circle,var(--muted) 45%,transparent 50%);cursor:pointer}
   body.searching #v-usage h2.sec,body.searching #v-usage p.sub{display:none}
   .row.dcrow .rk{display:flex;justify-content:center}
-  .rows.cities .row .bar i{background:#7dd3fc}
-  .rows.cities .row.sel{outline-color:#7dd3fc}
+  .rows.cities .row .bar i{background:rgba(255,255,255,.6)}
   .row .sub2{font-size:12px;color:var(--muted)}
   .keytab{display:none}
   .keywrap{display:grid;gap:18px}
-  .keywrap h4{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-weight:600}
+  .keywrap h4{font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:500}
   .keywrap ul{list-style:none;display:grid;grid-template-columns:repeat(2,auto);gap:8px 18px;justify-content:start}
   .keywrap li{display:flex;align-items:center;gap:8px;font-size:15px}
   #content{flex:1;overflow-y:auto;padding:16px 18px 8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
@@ -87,17 +86,17 @@
   .view{display:none;animation:fade .3s var(--ease)}
   .view.active{display:block}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  h2.sec{font-size:22px;letter-spacing:-0.01em;margin-bottom:4px}
+  h2.sec{font-size:22px;letter-spacing:-0.02em;font-weight:600;margin-bottom:4px}
   p.sub{font-size:14px;color:var(--muted);line-height:1.45;margin-bottom:14px}
   .rows{list-style:none}
   .row{display:grid;grid-template-columns:28px 1fr 46px;align-items:center;gap:10px;padding:7px 8px;border-radius:10px;cursor:pointer;transition:background .2s var(--ease)}
   .row:hover,.row.sel{background:rgba(255,255,255,.06)}
-  .row.sel{outline:1px solid rgba(244,199,107,.4)}
+  .row.sel{background:var(--fill-strong)}
   .row .rk{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
   .row .nm{font-size:15px;display:flex;flex-direction:column;gap:4px}
   .row .bar{height:7px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
-  .row .bar i{display:block;height:100%;border-radius:4px;background:var(--accent);transform-origin:left;transition:transform .5s var(--ease)}
-  .row .v{font-size:16px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+  .row .bar i{display:block;height:100%;border-radius:4px;background:rgba(255,255,255,.85);transform-origin:left;transition:transform .5s var(--ease)}
+  .row .v{font-size:16px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
   .row.low .bar i{background:rgba(255,255,255,.35)}
   /* spend */
   .stack{display:flex;height:34px;border-radius:10px;overflow:hidden;margin:10px 0 8px;border:1px solid var(--line)}
@@ -106,19 +105,18 @@
   .klist li{display:grid;grid-template-columns:14px 1fr auto;gap:10px;align-items:center;font-size:15px}
   .klist .dot{width:12px;height:12px;border-radius:4px}
   .klist .amt{font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
-  .klist .cnt{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600;text-align:right}
-  .bigcount{margin:16px 0 4px;padding:14px 16px;border-radius:14px;border:1px solid rgba(244,199,107,.35);background:var(--accent-dim)}
-  .bigcount .l{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-  .bigcount .n{font-size:30px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-0.01em;line-height:1.15}
+  .klist .cnt{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:500;text-align:right}
+  .bigcount{margin:16px 0 4px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.06)}
+  .bigcount .l{font-size:12px;color:var(--muted)}
+  .bigcount .n{font-size:30px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-0.01em;line-height:1.15}
   /* access */
-  .split h3{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
-  .split .row .bar i{background:#5ec8a0}
-  .split.least .row .bar i{background:#e06c6c}
-  .formula{font-size:13px;color:var(--muted);line-height:1.5;padding:10px 12px;border:1px dashed var(--line);border-radius:10px;margin-top:6px}
+  .split h3{font-size:13px;font-weight:500;color:var(--muted);margin:14px 0 6px}
+  .split.least .row .bar i{background:rgba(255,255,255,.35)}
+  .formula{font-size:13px;color:var(--muted);line-height:1.5;padding:10px 12px;background:rgba(255,255,255,.04);border-radius:10px;margin-top:6px}
   .formula b{color:var(--text);font-weight:600}
   /* country card */
   .card .top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-  .card h2{font-size:28px;letter-spacing:-0.02em;line-height:1.05}
+  .card h2{font-size:28px;letter-spacing:-0.025em;font-weight:600;line-height:1.05}
   .card .cont{font-size:14px;color:var(--muted);margin-top:4px}
   .card .x{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);font-size:18px;flex:none}
   .bricks{display:flex;gap:3px;margin:16px 0 6px;height:30px}
@@ -128,53 +126,50 @@
   .blegend span{display:inline-flex;align-items:center;gap:6px}
   .blegend i{width:9px;height:9px;border-radius:3px;display:inline-block}
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 14px}
-  .stat{padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
-  .stat .n{font-size:26px;font-weight:700;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;line-height:1.1}
+  .stat{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.05)}
+  .stat .n{font-size:26px;font-weight:600;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;line-height:1.1}
   .stat .n small{font-size:14px;color:var(--muted);font-weight:500;margin-left:2px}
   .stat .l{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.3}
   .facts{list-style:none;display:grid;gap:8px;margin:6px 0 16px}
   .facts li{font-size:15px;line-height:1.45;padding:10px 12px 10px 30px;border-radius:12px;background:rgba(255,255,255,.04);position:relative}
-  .facts li::before{content:"";position:absolute;left:12px;top:17px;width:8px;height:8px;border-radius:2px;background:var(--accent)}
-  .facts.caps li::before{background:#5ec8a0}
-  .facts.bars li::before{background:#e06c6c}
+  .facts li::before{content:"";position:absolute;left:12px;top:18px;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55)}
   .facts li.dcl{color:var(--muted);font-size:14px}
   .lnk{color:var(--text);text-decoration:underline;text-underline-offset:3px;font-size:14px}
   .lnk span{color:var(--muted)}
-  .lnk:hover{color:var(--accent)}
-  h3.sech{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
-  .buys{padding:12px 14px;border-radius:14px;border:1px solid rgba(244,199,107,.3);background:var(--accent-dim)}
-  .buys .big{font-size:24px;font-weight:700;letter-spacing:-0.01em;color:var(--accent);line-height:1.15}
+  .lnk:hover{color:#fff}
+  h3.sech{font-size:12px;font-weight:500;color:var(--muted);margin:14px 0 6px}
+  .buys{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.06)}
+  .buys .big{font-size:24px;font-weight:600;letter-spacing:-0.02em;color:var(--text);line-height:1.15}
   .buys .big small{font-size:13px;color:var(--muted);font-weight:500;margin-left:4px}
   .buys .cmp{font-size:13px;color:var(--muted);margin-top:4px}
   .buys .bar{height:8px;border-radius:4px;background:rgba(255,255,255,.08);margin:10px 0;overflow:hidden}
-  .buys .bar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#5ec8a0,var(--accent),#e06c6c)}
+  .buys .bar i{display:block;height:100%;border-radius:4px;background:rgba(255,255,255,.85)}
   .buys ul{list-style:none;display:grid;gap:4px;font-size:14px}
-  .buys li::before{content:"·";color:var(--accent);margin-right:6px}
+  .buys li::before{content:"·";color:var(--muted);margin-right:6px}
   .facts.routes li::before{background:var(--dot)}
   .facts.routes span{color:var(--muted);font-size:13px}
   p.tiny{font-size:12px;color:var(--muted);line-height:1.4;margin:6px 2px 0}
-  .btn.icon{padding:8px 10px;display:inline-flex;align-items:center}
+  .btn.icon{padding:8px 10px;display:inline-flex;align-items:center;border-color:transparent;color:var(--muted)}
+  .btn.icon:hover{background:var(--fill);border-color:transparent;color:var(--text)}
   .btn.icon .w1,.btn.icon .w2{display:none}
-  .btn.icon.on{border-color:var(--accent);color:var(--accent)}
+  .btn.icon.on{color:var(--text)}
   .btn.icon.on .w1,.btn.icon.on .w2{display:block}
   .btn.icon.on .mute{display:none}
   .toggle .short{display:none}
-  .seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .seg button{padding:8px 12px;font-size:15px;color:var(--muted);transition:all .2s var(--ease)}
-  .seg button + button{border-left:1px solid var(--line)}
-  .seg button:hover{color:var(--text);background:rgba(255,255,255,.05)}
-  .seg button.on{color:var(--accent);background:var(--accent-dim)}
+  .seg{display:inline-flex;gap:2px;padding:2px;border-radius:12px;background:var(--fill)}
+  .seg button{padding:7px 12px;font-size:14px;font-weight:500;border-radius:10px;color:var(--muted);transition:all .2s var(--ease)}
+  .seg button:hover{color:var(--text)}
+  .seg button.on{color:var(--text);background:var(--fill-strong);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.3)}
   .seg .short{display:none}
-  #powerKey .modes{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;margin:2px 0 4px;align-self:flex-start}
-  #powerKey .modes button{padding:5px 10px;font-size:12px;color:var(--muted)}
-  #powerKey .modes button + button{border-left:1px solid var(--line)}
-  #powerKey .modes button.on{color:var(--accent);background:var(--accent-dim)}
-  #powerKey{position:fixed;left:auto;right:calc(var(--panel-w) + 72px);bottom:104px;z-index:5;display:none;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);backdrop-filter:blur(10px);font-size:13px;color:var(--muted);animation:fade .3s var(--ease);min-width:270px}
+  #powerKey .modes{display:inline-flex;gap:2px;padding:2px;border-radius:9px;background:var(--fill);margin:2px 0 4px;align-self:flex-start}
+  #powerKey .modes button{padding:4px 10px;font-size:12px;border-radius:7px;color:var(--muted)}
+  #powerKey .modes button.on{color:var(--text);background:var(--fill-strong)}
+  #powerKey{position:fixed;left:auto;right:calc(var(--panel-w) + 72px);bottom:104px;z-index:5;display:none;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid var(--line);border-radius:16px;background:var(--panel);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);box-shadow:var(--shadow);font-size:13px;color:var(--muted);animation:fade .3s var(--ease);min-width:270px}
   #powerKey.show{display:flex}
   #powerKey .pkh{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-4px -6px 0;padding:4px 6px;border-radius:10px;text-align:left;color:var(--muted);transition:background .2s var(--ease)}
   #powerKey .pkh:hover{background:rgba(255,255,255,.05)}
   #powerKey .pkt{display:flex;flex-direction:column;gap:3px;min-width:0}
-  #powerKey .pkh b{color:var(--text);font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:12px}
+  #powerKey .pkh b{color:var(--text);font-weight:600;font-size:13px}
   #powerKey .pkh .sub{font-size:12px}
   #powerKey .strip{display:none;align-items:center;gap:3px;font-size:11px}
   #powerKey .strip i{width:14px;height:9px;border-radius:2px;display:inline-block}
@@ -196,13 +191,13 @@
   #nav{position:fixed;right:calc(var(--panel-w) + 72px);top:50%;transform:translateY(-50%);z-index:5;display:flex;flex-direction:column;align-items:center;gap:10px;user-select:none;-webkit-user-select:none;touch-action:none}
   body.pcol #nav{right:132px}
   #nav svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-  .nb{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(10px);color:var(--text);transition:all .2s var(--ease)}
+  .nb{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid var(--line);background:var(--panel);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);color:var(--text);transition:all .2s var(--ease)}
   .nb:hover{border-color:rgba(255,255,255,.3);background:rgba(30,33,46,.9)}
-  .nb:active,.pb:active{background:var(--accent-dim);border-color:rgba(244,199,107,.5);color:var(--accent)}
-  .zg{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;background:var(--panel);backdrop-filter:blur(10px);overflow:hidden}
+  .nb:active,.pb:active{background:var(--fill-strong);color:var(--text)}
+  .zg{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;background:var(--panel);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);overflow:hidden}
   .zg .nb{border:0;border-radius:0;background:none;backdrop-filter:none}
   .zg .nb + .nb{border-top:1px solid var(--line)}
-  .pad{position:relative;width:104px;height:104px;border-radius:50%;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(10px)}
+  .pad{position:relative;width:104px;height:104px;border-radius:50%;border:1px solid var(--line);background:var(--panel);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass)}
   .pb{position:absolute;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:var(--text);transition:all .15s var(--ease)}
   .pb:hover{background:rgba(255,255,255,.08)}
   .pb.up{top:4px;left:35px}.pb.down{bottom:4px;left:35px}.pb.left{left:4px;top:35px}.pb.right{right:4px;top:35px}
@@ -210,13 +205,13 @@
   .pc svg{width:18px;height:18px;stroke-width:1.8}
   #compass{transition:transform .1s linear}
   @media (max-height:700px) and (min-width:901px){ #nav .pad{width:88px;height:88px} .pb.up,.pb.down{left:27px} .pb.left,.pb.right{top:27px} .pc{left:29px;top:29px} }
-  .card .kicker{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+  .card .kicker{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:6px}
   .card .actions{display:flex;gap:8px}
   /* pins */
   #pins{border-top:1px solid var(--line);padding:12px 18px 6px;display:none}
   #pins.show{display:block}
-  #pins .ph{display:flex;justify-content:space-between;align-items:center;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-  #pins .ph button{font-size:12px;letter-spacing:0;text-transform:none;color:var(--muted);text-decoration:underline}
+  #pins .ph{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-bottom:6px}
+  #pins .ph button{font-size:12px;color:var(--muted);text-decoration:underline}
   #pinsvg{width:100%;height:170px;display:block}
   #pinsvg text{fill:var(--text);font-size:14px;font-weight:600}
   #pinsvg text.m{fill:var(--muted);font-weight:500;font-size:12px}
@@ -226,35 +221,36 @@
   #intro{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(7,8,12,.55),rgba(7,8,12,.88));backdrop-filter:blur(2px);opacity:0;animation:introIn .6s var(--ease) .2s forwards;transition:opacity .4s var(--ease)}
   #intro.out{opacity:0!important;pointer-events:none}
   body.intro #title,body.intro #hint{opacity:0;transition:none}
-  .ibox{max-width:640px;width:calc(100% - 48px);padding:36px 40px 28px;border:1px solid var(--line);border-radius:26px;background:rgba(14,16,24,.92);box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:center;position:relative;overflow:hidden}
-  .ibox .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;opacity:0;animation:rise .5s var(--ease) .5s forwards}
-  .ibox h2{font-size:clamp(34px,4.6vw,56px);letter-spacing:-0.02em;line-height:1.02;opacity:0;animation:rise .6s var(--ease) .7s forwards}
+  .ibox{max-width:640px;width:calc(100% - 48px);padding:36px 40px 28px;border:1px solid var(--line);border-radius:26px;background:rgba(24,24,27,.9);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:center;position:relative;overflow:hidden}
+  .ibox .eyebrow{font-size:13px;color:var(--muted);margin-bottom:12px;opacity:0;animation:rise .5s var(--ease) .5s forwards}
+  .ibox h2{font-size:clamp(34px,4.6vw,56px);letter-spacing:-0.03em;font-weight:600;line-height:1.04;opacity:0;animation:rise .6s var(--ease) .7s forwards}
   .ibox .lead{font-size:clamp(15px,1.3vw,18px);color:var(--muted);line-height:1.45;margin:14px auto 22px;max-width:520px;opacity:0;animation:rise .6s var(--ease) 1s forwards}
   .try{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:8px;align-items:stretch;text-align:left;opacity:0;animation:rise .6s var(--ease) 1.3s forwards}
-  .try .lbl{align-self:center;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-right:4px}
-  .try button{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.03);text-align:left;transition:all .2s var(--ease)}
-  .try button:hover{border-color:var(--accent);background:var(--accent-dim)}
+  .try .lbl{align-self:center;font-size:12px;color:var(--muted);padding-right:4px}
+  .try button{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:12px;border:0;background:var(--fill);text-align:left;transition:all .2s var(--ease)}
+  .try button:hover{background:var(--fill-strong)}
   .try button b{font-size:14px}
   .try button span{font-size:12px;color:var(--muted)}
   .ibox .how{font-size:13px;color:var(--muted);margin:18px 0 18px;line-height:1.5;opacity:0;animation:rise .6s var(--ease) 1.6s forwards}
   .ibox .how b{color:var(--text);font-weight:600}
   #introGo{opacity:0;animation:rise .5s var(--ease) 1.8s forwards;padding:11px 22px;font-size:16px}
   .ibar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.06)}
-  .ibar i{display:block;height:100%;width:100%;background:var(--accent);transform-origin:left;animation:shrink 9s linear forwards}
+  .ibar i{display:block;height:100%;width:100%;background:rgba(255,255,255,.5);transform-origin:left;animation:shrink 9s linear forwards}
   @keyframes introIn{to{opacity:1}}
   @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   @keyframes shrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
   @media (max-width:700px){ .try{grid-template-columns:1fr} .try .lbl{padding:0 0 2px} .ibox{padding:26px 22px 22px} }
   /* tooltip */
-  #tip{position:fixed;left:0;top:0;z-index:8;pointer-events:none;opacity:0;transform:translate(-50%,calc(-100% - 18px));padding:10px 14px;border-radius:12px;background:rgba(20,22,32,.94);border:1px solid rgba(255,255,255,.14);box-shadow:0 8px 30px rgba(0,0,0,.5);transition:opacity .2s var(--ease);white-space:nowrap}
-  #tip b{display:block;font-size:16px;margin-bottom:3px}
+  #tip{position:fixed;left:0;top:0;z-index:8;pointer-events:none;opacity:0;transform:translate(-50%,calc(-100% - 18px));padding:10px 14px;border-radius:14px;background:rgba(28,28,30,.86);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);transition:opacity .2s var(--ease);white-space:nowrap}
+  #tip b{display:block;font-size:16px;font-weight:600;margin-bottom:3px}
   #tip span{font-size:13px;color:var(--muted)}
   #tip span em{color:var(--text);font-style:normal;font-weight:600}
-  #tip .cta{display:block;margin-top:5px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
-  #hint{position:fixed;left:50%;bottom:9px;transform:translateX(calc(-50% - var(--panel-w)/2));z-index:4;font-size:13px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;opacity:0;transition:opacity 1s var(--ease);pointer-events:none}
+  #tip .cta{display:block;margin-top:5px;font-size:12px;color:var(--muted)}
+  #tip .hz{display:block;margin-top:4px;font-size:12px;color:var(--muted);font-style:italic}
+  #hint{position:fixed;left:50%;bottom:9px;transform:translateX(calc(-50% - var(--panel-w)/2));z-index:4;font-size:13px;color:var(--muted);opacity:0;transition:opacity 1s var(--ease);pointer-events:none}
   #hint.show{opacity:.85}
   #hint{white-space:nowrap}
-  @media (max-width:1500px){ #hint{font-size:11px;letter-spacing:.03em} }
+  @media (max-width:1500px){ #hint{font-size:12px} }
   @media (max-width:1250px){ #hint{display:none} }
 
   @media (max-height:820px) and (min-width:901px){
@@ -1461,7 +1457,7 @@ function retarget(dur, stagger){
   towers.forEach((t,i) => { const tgt = targetBricks(t); if (Math.abs(tgt - t.v) > 1e-3) animateTower(t, tgt, dur, stagger ? (i%13)*35 : 0, now); });
 }
 
-/* sound: tiny synthesised cues, off until the visitor turns them on (browsers require a gesture anyway) */
+/* sound: tiny synthesised cues, on from the start. Browsers only let audio play after a gesture, so the context is unlocked on the first tap, click or key press. */
 const sfx = (() => {
   let ctx = null, master = null, on = false, lastClick = 0;
   const ensure = () => { if (!ctx){ ctx = new (window.AudioContext||window.webkitAudioContext)(); master = ctx.createGain(); master.gain.value = 0.35; master.connect(ctx.destination); } if (ctx.state === "suspended") ctx.resume(); };
@@ -1479,12 +1475,15 @@ const sfx = (() => {
     select(){ tone(330, 0.32, "sine", 0.18, 660); tone(495, 0.28, "sine", 0.06, 990); },
     close(){ tone(520, 0.22, "sine", 0.12, 260); },
     toggle(){ tone(220, 0.12, "triangle", 0.14, 180); },
-    pin(){ tone(880, 0.08, "square", 0.05); tone(1320, 0.1, "square", 0.04); }
+    pin(){ tone(880, 0.08, "square", 0.05); tone(1320, 0.1, "square", 0.04); },
+    unlock(){ if (on){ try { ensure(); } catch(e){} } }
   };
 })();
+sfx.set(true);
+["pointerdown","keydown","touchstart"].forEach(ev => window.addEventListener(ev, () => sfx.unlock(), {passive:true, capture:true}));
 
 /* selection ring */
-const ring = new THREE.Mesh(new THREE.RingGeometry(1, 1.22, 48), new THREE.MeshBasicMaterial({color:0xf4c76b, transparent:true, opacity:0.9, side:THREE.DoubleSide, depthWrite:false}));
+const ring = new THREE.Mesh(new THREE.RingGeometry(1, 1.22, 48), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.85, side:THREE.DoubleSide, depthWrite:false}));
 ring.geometry.rotateX(-Math.PI/2); ring.visible = false; world.add(ring);
 function placeRingAt(pos, quat, r){ ring.visible = true; ring.position.copy(pos).multiplyScalar(1.003); ring.quaternion.copy(quat); ring.scale.set(r,r,r); ring.userData.base = r; ring.userData.t0 = performance.now(); }
 function placeRing(t){
@@ -1497,7 +1496,7 @@ function placeRing(t){
    CAMERA / ORBIT  (own implementation: yaw/pitch on the world group, dolly on the camera)
    ===================================================================================== */
 const view = { yaw:-(-20*deg), pitch:22*deg, tYaw:0, tPitch:22*deg, dist:4, tDist:4, minDist:1.45, maxDist:4, yawVel:0, pitchVel:0, lastInteract:-1e9, flying:false, panX:0, panY:0, tPanX:0, tPanY:0 };
-view.yaw = view.tYaw = 58*deg; view.pitch = view.tPitch = 12*deg; // centre lon ≈ -58°: the US sits centre-left, Europe right, Africa lower right
+view.yaw = view.tYaw = -20*deg; view.pitch = view.tPitch = 6*deg; // centre lon ≈ 20°E, lat ≈ 6°N: Africa fills the middle of the opening view, Europe above, the Middle East and India to the right
 const _qy = new THREE.Quaternion(), _qx = new THREE.Quaternion(), _ax = new THREE.Vector3(1,0,0), _ay = new THREE.Vector3(0,1,0);
 function applyView(){
   _qy.setFromAxisAngle(_ay, view.yaw); _qx.setFromAxisAngle(_ax, view.pitch);
@@ -1550,57 +1549,73 @@ function flyTo(ref, dist, towerLen){
 function pxPerRadian(){ return (window.innerHeight/2)/(Math.tan(camera.fov*deg/2)*Math.max(0.4, view.dist-1)); }
 
 /* =====================================================================================
-   HIT TESTING (screen-space, no raycaster): nearest tower segment / data-centre point
+   HIT TESTING: exact ray casts against the bricks that are actually drawn.
+   A ray is cast from the camera through the pointer and tested against every brick
+   (towers and data centres) as the true 3D box it is rendered as; the globe occludes,
+   so nothing behind the horizon can be picked, and where bricks overlap on screen the
+   one nearest the camera (the one you see) wins. For tolerance, a small ring of
+   samples around the pointer is tried when the pointer itself hits nothing.
    ===================================================================================== */
-const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _n = new THREE.Vector3(), _cam = new THREE.Vector3();
+const _cam = new THREE.Vector3();
 function toScreen(v){ v.project(camera); v.x = (v.x+1)/2*window.innerWidth; v.y = (1-v.y)/2*window.innerHeight; return v; }
-let lastSegT = 0;
-function segDist(px,py, ax,ay, bx,by){ const dx=bx-ax, dy=by-ay, l2=dx*dx+dy*dy; let t = l2>0 ? ((px-ax)*dx+(py-ay)*dy)/l2 : 0; t=clamp(t,0,1); lastSegT = t; const x=ax+dx*t, y=ay+dy*t; return Math.hypot(px-x,py-y); }
-const _seg = new THREE.Vector3(), _cl = new THREE.Vector3(), _cl2 = new THREE.Vector3();
-function pointHiddenBySphere(P){   // is the segment camera→P blocked by the globe?
-  _seg.copy(P).sub(_cam); const l2 = _seg.lengthSq(); if (l2 < 1e-9) return false;
-  const tt = clamp(-_cam.dot(_seg)/l2, 0, 1); _cl.copy(_cam).addScaledVector(_seg, tt);
-  return _cl.lengthSq() < R*R*0.999;
+const _ray = new THREE.Raycaster(), _ndc = new THREE.Vector2(), _rl = new THREE.Ray(), _qInv = new THREE.Quaternion();
+const _hb = new THREE.Vector3(), _ht = new THREE.Vector3(), _hp = new THREE.Vector3(), _hm = new THREE.Matrix4(), _hi = new THREE.Matrix4();
+const _box = new THREE.Box3(new THREE.Vector3(-0.5, 0, -0.5), new THREE.Vector3(0.5, 1, 0.5)), _bray = new THREE.Ray();
+const _sphere = new THREE.Sphere(new THREE.Vector3(0,0,0), R);
+// distance along the world-local ray to the front face of a brick (instance i of mesh), or Infinity if the ray misses it
+function brickHitDist(mesh, i, topExtra){
+  mesh.getMatrixAt(i, _hm);
+  if (Math.abs(_hm.determinant()) < 1e-18) return Infinity;            // collapsed (not yet built) brick
+  _hi.copy(_hm).invert();
+  _bray.copy(_rl).applyMatrix4(_hi);                                    // ray in the brick's own unit-box space
+  _box.max.y = 1 + (topExtra||0);                                       // the top brick includes its studs
+  if (!_bray.intersectBox(_box, _hp)) return Infinity;
+  _hp.applyMatrix4(_hm);                                                // back to world-local, then measure along the real ray
+  return _hp.distanceTo(_rl.origin);
 }
-function pxPerUnitAt(worldPos){ return (window.innerHeight/2)/(Math.tan(camera.fov*deg/2)*Math.max(0.05, view.dist - worldPos.z)); }
-function hitTest(px, py){
-  const pad = lastPointerType === "touch" ? 14 : 4;
-  camera.getWorldPosition(_cam); let best = null, bestScore = 1e9, bestDepth = 1e9;
+// cast one ray through screen point (px,py); returns the nearest visible brick as a hit object, or null
+function castAt(px, py){
+  _ndc.set(px/window.innerWidth*2-1, -(py/window.innerHeight*2-1));
+  _ray.setFromCamera(_ndc, camera);
+  // the world group only rotates, so the ray is moved into its frame once and every brick is tested where it was placed
+  _qInv.copy(world.quaternion).invert();
+  _rl.origin.copy(_ray.ray.origin).applyQuaternion(_qInv); _rl.direction.copy(_ray.ray.direction).applyQuaternion(_qInv);
+  // the globe itself: anything further along the ray than its surface is behind the horizon
+  const limit = _rl.intersectSphere(_sphere, _hp) ? _hp.distanceTo(_rl.origin) : Infinity;
+  let best = null, bestD = limit;
   for (const t of towers){
     if (t.v < 0.05) continue;
-    _a.copy(t.pos).applyQuaternion(world.quaternion); _n.copy(t.normal).applyQuaternion(world.quaternion);
     const len = Math.min(t.v, t.n)*t.dims.h;
-    _b.copy(_a).addScaledVector(_n, len);
-    if (pointHiddenBySphere(_a)){
-      if (pointHiddenBySphere(_b)) continue;                                // wholly behind the globe: never clickable
-      // base is behind the horizon but the top peeks over it: only the visible part of the tower may be clicked
-      let lo = 0, hi = 1;
-      for (let i=0;i<8;i++){ const mid = (lo+hi)/2; _cl2.copy(_a).addScaledVector(_n, len*mid); if (pointHiddenBySphere(_cl2)) lo = mid; else hi = mid; }
-      _a.addScaledVector(_n, len*hi);
+    _hb.copy(t.pos); _ht.copy(t.pos).addScaledVector(t.normal, len + t.dims.stud_h);
+    const reach = t.dims.w*0.75;                                        // broad phase: half the box diagonal, with a little slack
+    if (_rl.distanceSqToSegment(_hb, _ht) > reach*reach) continue;
+    const top = Math.min(t.n, Math.ceil(t.v)) - 1;
+    for (let k=0;k<=top;k++){
+      const d = brickHitDist(bricks, t.brickStart+k, k===top ? t.dims.stud_h/t.dims.h : 0);
+      if (d < bestD){ bestD = d; best = {type:"tower", t}; }
     }
-    const halfW = t.dims.w*0.5*pxPerUnitAt(_a);                             // on-screen half width of the brick body
-    const za = _a.z, zb = _b.z;
-    toScreen(_a); toScreen(_b);
-    const d = segDist(px,py,_a.x,_a.y,_b.x,_b.y) - halfW;                   // distance from the tower's body, not its centre line
-    if (d >= pad + 8) continue;
-    const depth = view.dist - lerp(za, zb, lastSegT);
-    // inside two overlapping towers → the one nearer the camera (the one you can see); otherwise the closer edge
-    const better = !best || (d <= 0 && bestScore <= 0 ? depth < bestDepth : d < bestScore);
-    if (better){ bestScore = d; best = {type:"tower", t}; bestDepth = depth; }
   }
-  // data centres are tested too; the pointer being inside a data-centre brick beats a nearby tower's margin
-  let dcBest = null, dcScore = 1e9, dcDepth = 1e9;
-  for (const d of DATA.datacentres){
-    _a.copy(d._pos).applyQuaternion(world.quaternion);
-    if (pointHiddenBySphere(_a)) continue;
-    const halfW = DC_BRICK.w*0.7*pxPerUnitAt(_a), z = _a.z;
-    toScreen(_a); const dd = Math.hypot(px-_a.x, py-_a.y) - halfW;
-    if (dd < pad + 8 && dd < dcScore){ dcScore = dd; dcBest = {type:"dc", d}; dcDepth = view.dist - z; }
+  for (let i=0;i<DATA.datacentres.length;i++){
+    const dc = DATA.datacentres[i];
+    _hb.copy(dc._pos); _ht.copy(dc._pos).addScaledVector(_hp.copy(dc._pos).normalize(), DC_BRICK.h);
+    const reach = DC_BRICK.w*0.75;
+    if (_rl.distanceSqToSegment(_hb, _ht) > reach*reach) continue;
+    const d = brickHitDist(dcMesh, i, 0);
+    if (d < bestD){ bestD = d; best = {type:"dc", d:dc}; }
   }
-  // pointer inside both bodies → whichever is nearer the camera (what you actually see on top); inside one → that one; otherwise the closer edge
-  const inTower = best && bestScore <= 0, inDC = dcBest && dcScore <= 0;
-  if (dcBest && ((inDC && inTower && dcDepth < bestDepth) || (inDC && !inTower) || (!inDC && !inTower && dcScore < bestScore))) return dcBest;
-  return best || dcBest;
+  return best;
+}
+const RING = Array.from({length:8}, (_,i) => [Math.cos(i*Math.PI/4), Math.sin(i*Math.PI/4)]);
+function hitTest(px, py){
+  camera.getWorldPosition(_cam);
+  const hit = castAt(px, py);
+  if (hit) return hit;
+  // nothing exactly under the pointer: allow a small margin (bigger for fingers) by sampling a ring around it, nearest ring first
+  const pad = lastPointerType === "touch" ? 14 : 4;
+  for (const r of [1.5, pad*0.5+1, pad+4]){
+    for (const [cx, cy] of RING){ const h = castAt(px + cx*r, py + cy*r); if (h) return h; }
+  }
+  return null;
 }
 
 /* =====================================================================================
@@ -1685,15 +1700,21 @@ function tipAnchor(hit){   // screen position of the top of the hovered tower, o
   toScreen(_tipV); return _tipV;
 }
 let tipKey = null;
+const _hzP = new THREE.Vector3(), _hzN = new THREE.Vector3(), _hzC = new THREE.Vector3();
+function overHorizon(t){   // the tower's base is on the far side of the globe: only its top is showing above the limb
+  _hzP.copy(t.pos).applyQuaternion(world.quaternion); _hzN.copy(t.normal).applyQuaternion(world.quaternion); camera.getWorldPosition(_hzC);
+  return _hzN.dot(_hzC.sub(_hzP)) <= 0;
+}
 function showTip(hit, x, y){
   if (!hit){ tip.style.opacity = 0; tipKey = null; return; }
-  const key = hit.type === "tower" ? "t:" + (hit.t.ref.isCity ? hit.t.ref.country.iso + "/" : "") + hit.t.ref.name : "d:" + hit.d.name;
+  const hz = hit.type === "tower" && overHorizon(hit.t);
+  const key = hit.type === "tower" ? "t:" + (hit.t.ref.isCity ? hit.t.ref.country.iso + "/" : "") + hit.t.ref.name + (hz ? "/hz" : "") : "d:" + hit.d.name;
   if (key !== tipKey){
     tipKey = key;
     if (hit.type === "tower"){
       const r = hit.t.ref;
       if (r.isCity) tip.innerHTML = `<b>${r.name}</b><span>${r.country.name} · usage index <em>${Math.round(r.usageIndex)}</em> · <em>${r.rel.toFixed(1)}×</em> national average · ≈<em>${fmtM(r.activeUsers)}</em> users</span>`;
-      else tip.innerHTML = `<b>${r.name}</b><span>usage index <em>${r.usageIndex.toFixed(r.isContinent?1:0)}</em> · active users <em>${fmtM(r.activeUsers)}</em>${r.isContinent?` · ${r.countries} countries shown`:""}</span><span class="cta">click for the full story</span>`;
+      else tip.innerHTML = `<b>${r.name}</b><span>usage index <em>${r.usageIndex.toFixed(r.isContinent?1:0)}</em> · active users <em>${fmtM(r.activeUsers)}</em>${r.isContinent?` · ${r.countries} countries shown`:""}</span>${hz ? `<span class="hz">Top of the tower, showing over the horizon</span>` : ""}<span class="cta">click for the full story</span>`;
     } else {
       tip.innerHTML = `<b>${hit.d.name}</b><span>${OPERATOR_LABEL[hit.d.operator]} data centre · ${hit.d.city}</span><span class="cta">click for details</span>`;
     }
