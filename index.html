@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Who gets to use AI?</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -21,6 +24,8 @@
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
   button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   #scene{position:fixed;inset:0;display:block;touch-action:none;cursor:grab}
+  #scene,#nav,#controls,#powerKey,#title,#panel .head{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+  #panel .head{touch-action:none}   /* the sheet handle on phones: the browser must not claim the swipe */
   #scene.dragging{cursor:grabbing}
   #scene.pointing{cursor:pointer}
 
@@ -85,7 +90,7 @@
   .keywrap h4{font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:500}
   .keywrap ul{list-style:none;display:grid;grid-template-columns:repeat(2,auto);gap:8px 18px;justify-content:start}
   .keywrap li{display:flex;align-items:center;gap:8px;font-size:15px}
-  #content{flex:1;overflow-y:auto;padding:16px 18px 8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
+  #content{flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:16px 18px 8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
   #content::-webkit-scrollbar{width:6px}#content::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px}
   .view{display:none;animation:fade .3s var(--ease)}
   .view.active{display:block}
@@ -222,10 +227,10 @@
   .note{padding:10px 18px 14px;font-size:12px;color:var(--muted);line-height:1.4;border-top:1px solid var(--line)}
 
   /* intro */
-  #intro{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(7,8,12,.55),rgba(7,8,12,.88));backdrop-filter:blur(2px);opacity:0;animation:introIn .6s var(--ease) .2s forwards;transition:opacity .4s var(--ease)}
+  #intro{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;overflow-y:auto;overscroll-behavior:contain;padding:12px 0;background:radial-gradient(ellipse at center,rgba(7,8,12,.55),rgba(7,8,12,.88));backdrop-filter:blur(2px);opacity:0;animation:introIn .6s var(--ease) .2s forwards;transition:opacity .4s var(--ease)}
   #intro.out{opacity:0!important;pointer-events:none}
   body.intro #title,body.intro #hint{opacity:0;transition:none}
-  .ibox{max-width:640px;width:calc(100% - 48px);padding:36px 40px 28px;border:1px solid var(--line);border-radius:26px;background:rgba(24,24,27,.9);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:center;position:relative;overflow:hidden}
+  .ibox{max-width:640px;width:calc(100% - 48px);margin:auto;padding:36px 40px 28px;border:1px solid var(--line);border-radius:26px;background:rgba(24,24,27,.9);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:center;position:relative;overflow:hidden}
   .ibox .eyebrow{font-size:13px;color:var(--muted);margin-bottom:12px;opacity:0;animation:rise .5s var(--ease) .5s forwards}
   .ibox h2{font-size:clamp(34px,4.6vw,56px);letter-spacing:-0.03em;font-weight:600;line-height:1.04;opacity:0;animation:rise .6s var(--ease) .7s forwards}
   .ibox .lead{font-size:clamp(15px,1.3vw,18px);color:var(--muted);line-height:1.45;margin:14px auto 22px;max-width:520px;opacity:0;animation:rise .6s var(--ease) 1s forwards}
@@ -244,6 +249,9 @@
   @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   @keyframes shrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
   @media (max-width:700px){ .try{grid-template-columns:1fr} .try .lbl{padding:0 0 2px} .ibox{padding:26px 22px 22px} }
+  @media (max-height:520px){ #intro{padding:8px 0} .ibox{width:calc(100% - 24px);padding:16px 22px 14px;border-radius:20px} .ibox .eyebrow{margin-bottom:4px} .ibox h2{font-size:26px} .ibox .lead{font-size:14px;margin:6px auto 10px} .try{grid-template-columns:auto 1fr 1fr 1fr;gap:6px} .try button{padding:7px 10px} .try button span{display:none} .ibox .how{margin:10px 0 10px;font-size:12px} #introGo{padding:9px 18px;font-size:15px} }
+  @media (hover:none){ .ibox .how .mouse{display:none} }
+  @media (hover:hover){ .ibox .how .touch{display:none} }
   /* tooltip */
   #tip{position:fixed;left:0;top:0;z-index:8;pointer-events:none;opacity:0;transform:translate(-50%,calc(-100% - 18px));padding:10px 14px;border-radius:14px;background:rgba(28,28,30,.86);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);transition:opacity .2s var(--ease);white-space:nowrap}
   #tip b{display:block;font-size:16px;font-weight:600;margin-bottom:3px}
@@ -261,6 +269,13 @@
   .credit-sm{display:none}
   .credit-sm{color:rgba(245,245,247,.85)}
   .credit-sm a{color:inherit;font-weight:500;text-decoration:underline;text-underline-offset:2px}
+  @media (pointer:coarse){
+    .tab{min-height:40px} .seg button,.toggle,.btn{min-height:38px} #collapse,#tickerHide,.card .x{min-width:38px;min-height:38px} #tickerHide{top:4px;right:4px}
+    .row{min-height:44px} .lnk{padding:6px 0;display:inline-block} #pins .ph button,#powerKey .modes button{padding:8px 12px;min-height:34px} #powerKey .pkh{min-height:40px} #keyToggle{min-height:40px}
+    .searchbox input{font-size:16px}   /* 16px stops iOS Safari zooming the page when the field is focused */
+    #soundToggle{min-width:42px;justify-content:center}
+    #ticker{padding-right:46px}
+  }
   @media (max-width:1500px){ #hint{font-size:12px} }
   @media (max-width:1250px){ #hint{display:none} }
 
@@ -279,10 +294,26 @@
   body.pcol #controls{right:132px}
   @media (max-width:1750px){ #controls{right:auto;left:36px;bottom:190px} body.pcol #controls{right:auto} #powerKey{left:36px;right:auto;bottom:268px} body.pcol #powerKey{left:36px;right:auto} }
 
+  /* tablets in landscape (iPad, small laptops): narrower panel, no rotate/move pads, legend moves into the Key tab */
+  @media (min-width:901px) and (max-width:1280px){
+    :root{--panel-w:340px}
+    #title{max-width:calc(100vw - var(--panel-w) - 160px)}
+    #title h1{font-size:clamp(30px,3.6vw,44px)}
+    #nav{right:calc(var(--panel-w) + 48px)}
+    #nav .pad{display:none}
+    #legend{display:none}
+    .keytab{display:block}
+    #credit{display:none}
+    .credit-sm{display:inline}
+    #controls{left:24px;bottom:24px}
+    #powerKey{left:24px;bottom:104px}
+  }
   /* landscape phones: keep the side panel, just narrower and tighter */
   @media (max-width:900px) and (orientation:landscape) and (min-width:601px){
     :root{--panel-w:320px}
-    #panel{top:10px;right:10px;bottom:10px}
+    #panel{top:10px;right:calc(10px + env(safe-area-inset-right,0px));bottom:10px}
+    #controls{left:calc(12px + env(safe-area-inset-left,0px))}
+    #title{left:calc(16px + env(safe-area-inset-left,0px))}
     #title{left:16px;top:12px;max-width:46vw}
     #title h1{font-size:26px}
     #title p{font-size:13px;margin-top:6px}
@@ -291,7 +322,12 @@
     #ticker .l{font-size:11px}
     #legend{display:none}
     #controls{left:12px;right:auto;bottom:10px;padding:8px 10px;gap:10px}
-    #nav{gap:6px;transform:translateY(-50%) scale(.85);transform-origin:right center}
+    #nav{gap:6px;right:calc(var(--panel-w) + 22px);transform:translateY(-50%)}
+    #nav .pad{display:none}
+    .nb{width:40px;height:40px}
+    #title{top:10px;max-width:calc(100vw - var(--panel-w) - 110px)}
+    #title p{display:none}
+    .keytab{display:block}
     .toggle .long{display:none} .toggle .short{display:inline}
     .seg .long{display:none} .seg .short{display:inline}
     #powerKey{display:none!important}
@@ -302,24 +338,26 @@
   }
   /* portrait phones (and anything very narrow): bottom sheet */
   @media (max-width:900px) and (orientation:portrait), (max-width:600px){
-    :root{--panel-w:0px}
-    #panel{top:auto;left:10px;right:10px;bottom:10px;width:auto;height:66%;max-height:72dvh;transition:transform .35s var(--ease)}
+    :root{--panel-w:0px;--sgap:calc(10px + env(safe-area-inset-bottom,0px))}
+    #panel{top:auto;left:10px;right:10px;bottom:var(--sgap);width:auto;height:66%;max-height:72dvh;transition:transform .35s var(--ease)}
     #panel.strip{transform:translateY(calc(100% - 60px))}
     #panel.strip #content,#panel.strip #pins,#panel.strip .note,#panel.strip .searchbox{visibility:hidden}
-    #panel .head{padding:10px 10px 0}
-    .tab{font-size:14px;padding:9px 4px}
+    #panel::before{content:"";position:absolute;top:6px;left:50%;width:36px;height:5px;margin-left:-18px;border-radius:3px;background:rgba(255,255,255,.28)}
+    #panel .head{padding:14px 10px 0}
+    #panel.kb{top:var(--kbtop,8px);bottom:auto;height:var(--kbh,60%);max-height:none;transform:none}
+    .tab{font-size:14px;padding:9px 4px;min-height:36px}
     .keytab{display:block}
     #collapse{width:34px;height:34px}
     .searchbox{margin:8px 10px 0}
     #content{padding:12px 12px 8px}
-    #title{left:16px;top:14px;max-width:calc(100vw - 32px)}
+    #title{left:16px;top:calc(14px + env(safe-area-inset-top,0px));max-width:calc(100vw - 32px)}
     #title h1{font-size:clamp(26px,7.5vw,34px)}
     #title p{font-size:14px;margin-top:6px;max-width:none}
     #ticker{margin-top:10px;padding:8px 34px 8px 12px;gap:8px}
     #ticker .n{font-size:18px;min-width:7ch}
     #ticker .l{font-size:12px}
     #legend{display:none}
-    #controls{left:10px;right:10px;transform:none;top:auto;bottom:calc(60px + 20px);padding:8px 10px;gap:8px;flex-wrap:wrap;transition:bottom .35s var(--ease)}
+    #controls{left:10px;right:10px;transform:none;top:auto;bottom:calc(var(--sgap) + 70px);padding:8px 10px;gap:8px;flex-wrap:wrap;transition:bottom .35s var(--ease)}
     #soundToggle{margin-left:auto}
     #ticker .rate{display:none}
     .toggle{padding:7px 9px;font-size:14px;gap:8px}
@@ -327,10 +365,10 @@
     .seg .long{display:none} .seg .short{display:inline}
     .seg button{padding:7px 9px;font-size:14px}
     #controls{gap:6px;padding:8px}
-    #powerKey{left:10px;right:64px;transform:none;bottom:calc(60px + 20px + 112px);padding:8px 10px;font-size:12px}
+    #powerKey{left:10px;right:64px;transform:none;bottom:calc(var(--sgap) + 70px + 112px);padding:8px 10px;font-size:12px}
     #powerKey em{display:none}
     body.sheet-open #powerKey{opacity:0;pointer-events:none}
-    #nav{right:10px;top:auto;bottom:calc(60px + 20px + 112px + 14px);transform:none;gap:8px;transition:opacity .3s var(--ease)}
+    #nav{right:10px;top:auto;bottom:calc(var(--sgap) + 70px + 112px + 14px);transform:none;gap:8px;transition:opacity .3s var(--ease)}
     #nav .pad{display:none}
     .nb{width:40px;height:40px}
     body.sheet-open #nav{opacity:0;pointer-events:none}
@@ -347,7 +385,7 @@
     .facts li{font-size:14px}
     #pinsvg{height:130px}
     .bigcount .n{font-size:26px}
-    #collapse{transform:rotate(90deg)} #panel.strip #collapse{transform:rotate(-90deg)}
+    #collapse{transform:rotate(90deg);transition:transform .3s var(--ease)} #panel.strip #collapse{transform:rotate(-90deg)}
     body.sheet-open #controls{opacity:0;pointer-events:none}
     body.sheet-open #title{opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
     #title{transition:opacity .3s var(--ease)}
@@ -464,7 +502,7 @@
       <button data-q="Bengaluru"><b>a city</b><span>Bengaluru · Lagos · Dublin</span></button>
       <button data-q="Virginia"><b>a data centre</b><span>Virginia · Hamina · Cape Town</span></button>
     </div>
-    <p class="how">Click any tower for the full story · drag to rotate · scroll to zoom · switch on the <b>Power</b> and <b>Data cost</b> maps</p>
+    <p class="how"><span class="mouse">Click any tower for the full story · drag to rotate · scroll to zoom</span><span class="touch">Tap any tower for the full story · drag to rotate · pinch to zoom · two fingers to move</span> · switch on the <b>Power</b> and <b>Data cost</b> maps</p>
     <button class="btn primary" id="introGo">Start exploring</button>
     <div class="ibar"><i></i></div>
   </div>
@@ -1521,6 +1559,15 @@ function applyView(){
 }
 function worldPerPx(){ return 2*view.dist*Math.tan(camera.fov*deg/2)/window.innerHeight; }
 function panBy(dxPx, dyPx){ view.autoPan = false; const w = worldPerPx(), lim = 0.9*view.dist; view.tPanX = clamp(view.tPanX - dxPx*w, -lim, lim); view.tPanY = clamp(view.tPanY + dyPx*w, -lim, lim); }
+// screen point the camera looks straight at (the main area's centre: the viewport minus the side panel, or above the open sheet)
+function viewCentre(){ const v = camera.view; return v && v.enabled ? [window.innerWidth/2 - v.offsetX, window.innerHeight/2 - v.offsetY] : [window.innerWidth/2, window.innerHeight/2]; }
+// dolly by `factor` keeping whatever is under screen point (px,py) in place: the pan needed is o·(d0−d1)/F for a point o px off centre, whatever its depth
+function zoomAt(factor, px, py){
+  const d0 = view.tDist, d1 = clamp(d0*factor, view.minDist, view.maxDist); if (d1 === d0) return;
+  const [cx, cy] = viewCentre(), F = (window.innerHeight/2)/Math.tan(camera.fov*deg/2), lim = 0.9*d1;
+  view.autoPan = false; view.tDist = d1;
+  view.tPanX = clamp(view.tPanX + (px-cx)*(d0-d1)/F, -lim, lim); view.tPanY = clamp(view.tPanY - (py-cy)*(d0-d1)/F, -lim, lim);
+}
 const isNarrow = () => window.matchMedia("(max-width:900px) and (orientation:portrait), (max-width:600px)").matches;   // phones: bottom sheet layout
 function panelWidth(){
   if (isNarrow()) return 0;
@@ -1540,7 +1587,8 @@ function resize(){
   camera.aspect = W/H; camera.updateProjectionMatrix();
   // centre the globe in the main area: the viewport minus the side panel; on phones with the sheet open, the area above the sheet
   const sheetOpen = nowNarrow && !$("#panel").classList.contains("strip");
-  camera.setViewOffset(W, H, pw/2, sheetOpen ? H*0.32 : 0, W, H);
+  const sheetH = sheetOpen ? Math.min(H*0.8, $("#panel").offsetHeight + 10) : 0;   // centre the globe in the strip of screen above the open sheet
+  camera.setViewOffset(W, H, pw/2, sheetH/2, W, H);
   const aspect = Math.max(0.3, (W-pw)/H), fitDist = (nowNarrow ? 1.3 : 1.42)/(Math.tan(camera.fov*deg/2)*Math.min(1, aspect));
   const wasMax = Math.abs(view.tDist - view.maxDist) < 1e-3;
   view.maxDist = Math.max(2.4, fitDist);
@@ -1627,7 +1675,7 @@ function hitTest(px, py){
   const hit = castAt(px, py);
   if (hit) return hit;
   // nothing exactly under the pointer: allow a small margin (bigger for fingers) by sampling a ring around it, nearest ring first
-  const pad = lastPointerType === "touch" ? 14 : 4;
+  const pad = lastPointerType === "touch" ? 22 : 4;
   for (const r of [1.5, pad*0.5+1, pad+4]){
     for (const [cx, cy] of RING){ const h = castAt(px + cx*r, py + cy*r); if (h) return h; }
   }
@@ -1638,17 +1686,19 @@ function hitTest(px, py){
    POINTER / KEYBOARD INTERACTION
    ===================================================================================== */
 const tip = $("#tip");
-let lastPointerType = "mouse";
+const COARSE = window.matchMedia("(pointer:coarse)").matches, TAP = COARSE ? "Tap" : "Click";
+if (COARSE){ const sub = $("#v-usage p.sub"); sub.textContent = sub.textContent.replace("Click", "Tap"); }
+let lastPointerType = COARSE ? "touch" : "mouse";
 const pointers = new Map(); let dragging = false, downX=0, downY=0, lastX=0, lastY=0, lastT=0, pinchD=0, mouseX=-1, mouseY=-1, mouseMoved=false;
 function touchUI(){ view.lastInteract = performance.now(); view.flying = false; }
-let panMode = false, pinchMX = 0, pinchMY = 0;
+let panMode = false, pinchMX = 0, pinchMY = 0, tapBlocked = false, lastTapT = 0, lastTapX = 0, lastTapY = 0;
 canvas.addEventListener("contextmenu", e => e.preventDefault());
 canvas.addEventListener("pointerdown", e => {
   lastPointerType = e.pointerType || "mouse";
   try { canvas.setPointerCapture(e.pointerId); } catch(_){}
   pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
-  if (pointers.size === 1){ dragging = true; panMode = e.button === 2 || e.button === 1 || e.shiftKey; downX = lastX = e.clientX; downY = lastY = e.clientY; lastT = performance.now(); view.yawVel = view.pitchVel = 0; canvas.classList.add("dragging"); }
-  else if (pointers.size === 2){ const [a,b] = [...pointers.values()]; pinchD = Math.hypot(a.x-b.x, a.y-b.y); pinchMX = (a.x+b.x)/2; pinchMY = (a.y+b.y)/2; }
+  if (pointers.size === 1){ dragging = true; tapBlocked = false; panMode = e.button === 2 || e.button === 1 || e.shiftKey; downX = lastX = e.clientX; downY = lastY = e.clientY; lastT = performance.now(); view.yawVel = view.pitchVel = 0; canvas.classList.add("dragging"); }
+  else if (pointers.size === 2){ const [a,b] = [...pointers.values()]; pinchD = Math.hypot(a.x-b.x, a.y-b.y); pinchMX = (a.x+b.x)/2; pinchMY = (a.y+b.y)/2; tapBlocked = true; view.yawVel = view.pitchVel = 0; }
   touchUI();
 });
 canvas.addEventListener("pointermove", e => {
@@ -1657,7 +1707,7 @@ canvas.addEventListener("pointermove", e => {
   pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
   if (pointers.size === 2){
     const [a,b] = [...pointers.values()], d = Math.hypot(a.x-b.x, a.y-b.y), mx = (a.x+b.x)/2, my = (a.y+b.y)/2;
-    if (pinchD > 0){ view.tDist = clamp(view.tDist * pinchD/d, view.minDist, view.maxDist); panBy(mx-pinchMX, my-pinchMY); }   // pinch = zoom, two-finger drag = move
+    if (pinchD > 0){ zoomAt(pinchD/d, mx, my); panBy(mx-pinchMX, my-pinchMY); }   // pinch = zoom about the fingers, two-finger drag = move
     pinchD = d; pinchMX = mx; pinchMY = my; touchUI(); return;
   }
   if (!dragging) return;
@@ -1671,26 +1721,36 @@ canvas.addEventListener("pointermove", e => {
   lastX = e.clientX; lastY = e.clientY; lastT = now; touchUI();
 });
 function endPointer(e){
-  const wasDrag = dragging && Math.hypot(e.clientX-downX, e.clientY-downY) > 6;
+  const slop = lastPointerType === "touch" ? 12 : 6;   // a finger wobbles a few pixels during a tap
+  const wasDrag = tapBlocked || (dragging && Math.hypot(e.clientX-downX, e.clientY-downY) > slop);
   pointers.delete(e.pointerId);
   if (pointers.size < 2) pinchD = 0;
+  if (pointers.size === 1){   // one finger lifted after a pinch: the remaining finger continues as a plain drag from where it is, with no jump
+    const [r] = [...pointers.values()]; lastX = r.x; lastY = r.y; lastT = performance.now(); dragging = true; panMode = false; view.yawVel = view.pitchVel = 0;
+  }
   if (pointers.size === 0){
     dragging = false; canvas.classList.remove("dragging");
     if (performance.now()-lastT > 80) view.yawVel = view.pitchVel = 0;
     if (!wasDrag && e.type === "pointerup"){
-      const hit = hitTest(e.clientX, e.clientY);
+      const now = performance.now(), hit = hitTest(e.clientX, e.clientY);
+      const dbl = lastPointerType === "touch" && now - lastTapT < 320 && Math.hypot(e.clientX-lastTapX, e.clientY-lastTapY) < 30;
+      lastTapT = now; lastTapX = e.clientX; lastTapY = e.clientY;
       if (hit && hit.type === "tower" && hit.t.isCity){ const c = hit.t.cityOf; focusCity(c, cityObjects(c).indexOf(hit.t.ref)); }
       else if (hit && hit.type === "tower") select(hit.t.ref);
       else if (hit && hit.type === "dc") selectDC(hit.d);
       else if (eggs.hit(e.clientX, e.clientY)) {}
-      else if (state.selected || state.selectedDC) select(null);
+      else if (dbl){ zoomAt(0.6, e.clientX, e.clientY); lastTapT = 0; }   // double tap on empty globe: zoom in there
+      else {
+        if (state.selected || state.selectedDC) select(null);
+        if (isNarrow() && !$("#panel").classList.contains("strip") && !$("#panel").classList.contains("kb")){ $("#panel").classList.add("strip"); syncSheet(); }   // phones: tapping the globe tucks the sheet away
+      }
     }
   }
   touchUI();
 }
 canvas.addEventListener("pointerup", endPointer); canvas.addEventListener("pointercancel", endPointer);
 canvas.addEventListener("pointerleave", () => { mouseX = mouseY = -1; setHover(null); });
-canvas.addEventListener("wheel", e => { e.preventDefault(); view.tDist = clamp(view.tDist * Math.exp(clamp(e.deltaY, -60, 60)*0.0025), view.minDist, view.maxDist); touchUI(); }, {passive:false});
+canvas.addEventListener("wheel", e => { e.preventDefault(); if (e.ctrlKey) zoomAt(Math.exp(clamp(e.deltaY, -60, 60)*0.01), e.clientX, e.clientY); else zoomAt(Math.exp(clamp(e.deltaY, -60, 60)*0.0025), e.clientX, e.clientY); touchUI(); }, {passive:false});   // scroll (or trackpad pinch) zooms towards the cursor
 window.addEventListener("keydown", e => {
   if (e.target.tagName === "INPUT") return;
   const step = 6*deg, ps = 40;
@@ -1774,11 +1834,29 @@ document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () =>
 function toggleTicker(){ document.body.classList.toggle("noticker"); }
 $("#tickerHide").addEventListener("click", toggleTicker);
 $("#tickerShow").addEventListener("click", toggleTicker);
-/* phones: swipe the sheet header up/down to open/close */
-{ let sy = null; const head = $("#panel .head");
-  head.addEventListener("pointerdown", e => { if (isNarrow() && e.target.closest("button") === null) sy = e.clientY; });
-  head.addEventListener("pointerup", e => { if (sy === null) return; const dy = e.clientY - sy; sy = null; if (Math.abs(dy) < 30) return; $("#panel").classList.toggle("strip", dy > 0); syncSheet(); });
-  head.addEventListener("pointercancel", () => sy = null);
+/* phones: drag the sheet by its header (grabber or tabs). It follows the finger; a flick, or letting go past halfway, opens or tucks it away. */
+{ let sy = null, sx = 0, t0 = 0, startStrip = false, moved = false, pid = null; const head = $("#panel .head"), panel = $("#panel");
+  const closedY = () => panel.offsetHeight - 60;
+  head.addEventListener("pointerdown", e => { if (!isNarrow() || panel.classList.contains("kb")) return; sy = e.clientY; sx = e.clientX; t0 = performance.now(); startStrip = panel.classList.contains("strip"); moved = false; pid = e.pointerId; });
+  head.addEventListener("pointermove", e => {
+    if (sy === null || e.pointerId !== pid) return;
+    const dy = e.clientY - sy;
+    if (!moved){ if (Math.abs(dy) < 6 || Math.abs(dy) < Math.abs(e.clientX - sx)) return; moved = true; try { head.setPointerCapture(pid); } catch(_){} }
+    const y = clamp((startStrip ? closedY() : 0) + dy, 0, closedY());
+    panel.style.transition = "none"; panel.style.transform = `translateY(${y}px)`;
+  });
+  const end = e => {
+    if (sy === null || e.pointerId !== pid) return;
+    const dy = e.clientY - sy, dt = Math.max(1, performance.now() - t0); sy = null; pid = null;
+    panel.style.transition = ""; panel.style.transform = "";
+    if (!moved) return;
+    const flick = Math.abs(dy)/dt > 0.45, far = Math.abs(dy) > 0.25*closedY();   // a flick, or a quarter of the travel, is enough to change state
+    const strip = flick ? dy > 0 : far ? dy > 0 : startStrip;
+    panel.classList.toggle("strip", strip); syncSheet();
+    setTimeout(() => moved = false, 0);   // swallow only the click that belongs to this drag
+  };
+  head.addEventListener("pointerup", end); head.addEventListener("pointercancel", end);
+  head.addEventListener("click", e => { if (moved){ e.stopPropagation(); e.preventDefault(); } }, true);   // a drag that ends over a tab is not a tab press
 }
 /* key tab (phones only): the legend lives inside the panel there */
 $("#v-key .keywrap").innerHTML = $("#legend").innerHTML;
@@ -1801,6 +1879,19 @@ function runSearch(){
 }
 searchEl.addEventListener("input", runSearch);
 searchEl.addEventListener("focus", () => { if (isNarrow()){ $("#panel").classList.remove("strip"); syncSheet(); } });
+/* phones: while the keyboard is up, the sheet fills the visible part of the screen so search results are not hidden behind it */
+if (window.visualViewport){
+  const vv = window.visualViewport, panel = $("#panel");
+  const fit = () => {
+    const kb = window.innerHeight - vv.height - vv.offsetTop;
+    const on = isNarrow() && kb > 120 && document.activeElement === searchEl;
+    if (on){ panel.style.setProperty("--kbtop", (vv.offsetTop + 8) + "px"); panel.style.setProperty("--kbh", (vv.height - 16) + "px"); panel.classList.add("kb"); panel.classList.remove("strip"); }
+    else panel.classList.remove("kb");
+    syncSheet();
+  };
+  vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit);
+  searchEl.addEventListener("blur", () => setTimeout(fit, 60));
+}
 searchEl.addEventListener("keydown", e => {
   if (e.key === "Enter"){
     const first = $("#usageList").querySelector(".row:not([style*='none'])") || searchDC.querySelector(".row");
@@ -1877,7 +1968,7 @@ function cardHTML(r){
     const days = hours/8, gb = 20/r.dataCostPerGB;
     const cities = cityObjects(r), natl = r.usageIndex;
     const cityHtml = cities.length > 1 ? `<h3 class="sech">Cities · usage per person</h3><ul class="rows cities">${cities.map((ct,i) => `<li class="row" data-city="${i}"><span class="rk">${i+1}</span><span class="nm">${ct.name}<span class="bar"><i style="transform:scaleX(${Math.min(1, ct.usageIndex/Math.max(natl*4, cities[0].usageIndex)).toFixed(3)})"></i></span><span class="sub2">${ct.rel.toFixed(1)}× national · ≈${fmtM(ct.activeUsers)} users · ${ct.population >= 1 ? ct.population.toFixed(1)+" M" : Math.round(ct.population*1000)+" k"} people</span></span><span class="v">${Math.round(ct.usageIndex)}</span></li>`).join("")}</ul>
-      <p class="tiny">National index ${natl}. Thin towers on the globe show the top ${Math.min(cities.length, CITY_SLOTS)} cities at the same scale as the country tower. Click a city to fly there.</p>` : "";
+      <p class="tiny">National index ${natl}. Thin towers on the globe show the top ${Math.min(cities.length, CITY_SLOTS)} cities at the same scale as the country tower. ${TAP} a city to fly there.</p>` : "";
     const buys = cityHtml + `<h3 class="sech">What $20 buys here</h3><div class="buys"><div class="big">${workStr}<small> of work at the median wage</small></div>
       <div class="cmp"><span>${r.iso === "US" ? "the benchmark" : (hours/usHours).toFixed(hours/usHours >= 10 ? 0 : 1)+"× longer than in the US ("+Math.round(usHours*60)+" min)"}</span></div>
       <div class="bar"><i style="width:${Math.min(100, 100*Math.log10(1+hours)/Math.log10(1+90)).toFixed(1)}%"></i></div>
