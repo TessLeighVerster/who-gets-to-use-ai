@@ -23,9 +23,10 @@
   html,body{overscroll-behavior:none}
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
   button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
-  #scene{position:fixed;inset:0;display:block;touch-action:none;cursor:grab}
+  #scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}   /* a canvas is a replaced element: without an explicit size, inset:0 does not stretch it and its box follows the drawing buffer (1.5-2x the screen on high-density displays), putting every tap out of register */
   #scene,#nav,#controls,#powerKey,#title,#panel .head{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
-  #panel .head{touch-action:none}   /* the sheet handle on phones: the browser must not claim the swipe */
+  #panel .head,#legend,#credit,#tip,#hint{touch-action:none}   /* the sheet handle on phones: the browser must not claim the swipe; nothing on the page may pinch-zoom it, which would put taps out of register with the globe */
+  #content,#panel .note,#pins,#intro{touch-action:pan-y}
   #scene.dragging{cursor:grabbing}
   #scene.pointing{cursor:pointer}
 
@@ -33,7 +34,8 @@
   #title{position:fixed;left:36px;top:32px;max-width:560px;pointer-events:none;z-index:5}
   #title h1{font-size:clamp(34px,4.2vw,58px);line-height:1.04;letter-spacing:-0.025em;font-weight:600;text-shadow:0 2px 24px rgba(0,0,0,.5)}
   #title p{margin-top:12px;font-size:clamp(16px,1.35vw,20px);line-height:1.4;color:var(--muted);max-width:460px}
-  #ticker{margin-top:18px;display:inline-flex;align-items:baseline;gap:10px;padding:10px 16px;border:1px solid var(--line);border-radius:16px;background:var(--panel);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);box-shadow:var(--shadow);pointer-events:auto}
+  #ticker{margin-top:18px;display:inline-flex;align-items:baseline;gap:10px;padding:10px 16px;border:1px solid var(--line);border-radius:16px;background:var(--panel);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);box-shadow:var(--shadow);pointer-events:none}
+  #tickerHide{pointer-events:auto}
   #ticker .n{font-variant-numeric:tabular-nums;font-size:clamp(20px,1.9vw,28px);font-weight:600;letter-spacing:-0.02em;color:var(--text);min-width:8ch}
   #ticker .l{font-size:14px;color:var(--muted);line-height:1.25}
   #ticker{position:relative;padding-right:40px}
@@ -378,6 +380,7 @@
     #hint{display:none}
     #credit{display:none}
     .credit-sm{display:inline}
+    #tip{white-space:normal;max-width:calc(100vw - 24px)}
     .card h2{font-size:24px}
     .stats{gap:8px}
     .stat{padding:10px 12px}
@@ -1557,14 +1560,14 @@ function applyView(){
   world.quaternion.copy(_qx).multiply(_qy);
   camera.position.set(view.panX, view.panY, view.dist); camera.lookAt(view.panX, view.panY, 0);   // pan = slide camera parallel to the screen
 }
-function worldPerPx(){ return 2*view.dist*Math.tan(camera.fov*deg/2)/window.innerHeight; }
+function worldPerPx(){ return 2*view.dist*Math.tan(camera.fov*deg/2)/VH; }
 function panBy(dxPx, dyPx){ view.autoPan = false; const w = worldPerPx(), lim = 0.9*view.dist; view.tPanX = clamp(view.tPanX - dxPx*w, -lim, lim); view.tPanY = clamp(view.tPanY + dyPx*w, -lim, lim); }
 // screen point the camera looks straight at (the main area's centre: the viewport minus the side panel, or above the open sheet)
-function viewCentre(){ const v = camera.view; return v && v.enabled ? [window.innerWidth/2 - v.offsetX, window.innerHeight/2 - v.offsetY] : [window.innerWidth/2, window.innerHeight/2]; }
+function viewCentre(){ const v = camera.view; return v && v.enabled ? [VX + VW/2 - v.offsetX, VY + VH/2 - v.offsetY] : [VX + VW/2, VY + VH/2]; }
 // dolly by `factor` keeping whatever is under screen point (px,py) in place: the pan needed is o·(d0−d1)/F for a point o px off centre, whatever its depth
 function zoomAt(factor, px, py){
   const d0 = view.tDist, d1 = clamp(d0*factor, view.minDist, view.maxDist); if (d1 === d0) return;
-  const [cx, cy] = viewCentre(), F = (window.innerHeight/2)/Math.tan(camera.fov*deg/2), lim = 0.9*d1;
+  const [cx, cy] = viewCentre(), F = (VH/2)/Math.tan(camera.fov*deg/2), lim = 0.9*d1;
   view.autoPan = false; view.tDist = d1;
   view.tPanX = clamp(view.tPanX + (px-cx)*(d0-d1)/F, -lim, lim); view.tPanY = clamp(view.tPanY - (py-cy)*(d0-d1)/F, -lim, lim);
 }
@@ -1576,8 +1579,11 @@ function panelWidth(){
   return w + 48;
 }
 let wasNarrow = isNarrow();
+let VW = window.innerWidth, VH = window.innerHeight, VX = 0, VY = 0;   // the canvas's on-screen box: size and offset in CSS px (page zoom on iOS can make this differ from the window)
+function measureCanvas(){ const r = canvas.getBoundingClientRect(); if (r.width > 0 && r.height > 0){ VW = r.width; VH = r.height; VX = r.left; VY = r.top; } else { VW = window.innerWidth; VH = window.innerHeight; VX = VY = 0; } }
 function resize(){
-  const W = window.innerWidth, H = window.innerHeight;
+  measureCanvas();
+  const W = VW, H = VH;
   const nowNarrow = isNarrow();
   if (nowNarrow && !wasNarrow) $("#panel").classList.add("strip");
   if (!nowNarrow && wasNarrow) $("#panel").classList.remove("strip");
@@ -1610,7 +1616,7 @@ function flyTo(ref, dist, towerLen){
   view.tPanX = _fb.x; view.tPanY = _fb.y; view.autoPan = true;
   view.flying = true; view.yawVel = view.pitchVel = 0; view.lastInteract = performance.now();
 }
-function pxPerRadian(){ return (window.innerHeight/2)/(Math.tan(camera.fov*deg/2)*Math.max(0.4, view.dist-1)); }
+function pxPerRadian(){ return (VH/2)/(Math.tan(camera.fov*deg/2)*Math.max(0.4, view.dist-1)); }
 
 /* =====================================================================================
    HIT TESTING: exact ray casts against the bricks that are actually drawn.
@@ -1621,7 +1627,7 @@ function pxPerRadian(){ return (window.innerHeight/2)/(Math.tan(camera.fov*deg/2
    samples around the pointer is tried when the pointer itself hits nothing.
    ===================================================================================== */
 const _cam = new THREE.Vector3();
-function toScreen(v){ v.project(camera); v.x = (v.x+1)/2*window.innerWidth; v.y = (1-v.y)/2*window.innerHeight; return v; }
+function toScreen(v){ v.project(camera); v.x = VX + (v.x+1)/2*VW; v.y = VY + (1-v.y)/2*VH; return v; }   // world → client (page) pixels
 const _ray = new THREE.Raycaster(), _ndc = new THREE.Vector2(), _rl = new THREE.Ray(), _qInv = new THREE.Quaternion();
 const _hb = new THREE.Vector3(), _ht = new THREE.Vector3(), _hp = new THREE.Vector3(), _hm = new THREE.Matrix4(), _hi = new THREE.Matrix4();
 const _box = new THREE.Box3(new THREE.Vector3(-0.5, 0, -0.5), new THREE.Vector3(0.5, 1, 0.5)), _bray = new THREE.Ray();
@@ -1639,7 +1645,7 @@ function brickHitDist(mesh, i, topExtra){
 }
 // cast one ray through screen point (px,py); returns the nearest visible brick as a hit object, or null
 function castAt(px, py){
-  _ndc.set(px/window.innerWidth*2-1, -(py/window.innerHeight*2-1));
+  _ndc.set((px-VX)/VW*2-1, -((py-VY)/VH*2-1));   // client (page) pixels → the canvas's own normalised coordinates
   _ray.setFromCamera(_ndc, camera);
   // the world group only rotates, so the ray is moved into its frame once and every brick is tested where it was placed
   _qInv.copy(world.quaternion).invert();
@@ -1675,8 +1681,8 @@ function hitTest(px, py){
   const hit = castAt(px, py);
   if (hit) return hit;
   // nothing exactly under the pointer: allow a small margin (bigger for fingers) by sampling a ring around it, nearest ring first
-  const pad = lastPointerType === "touch" ? 22 : 4;
-  for (const r of [1.5, pad*0.5+1, pad+4]){
+  const radii = lastPointerType === "touch" ? [2, 7, 13, 20, 28] : [1.5, 4, 8];
+  for (const r of radii){
     for (const [cx, cy] of RING){ const h = castAt(px + cx*r, py + cy*r); if (h) return h; }
   }
   return null;
@@ -1691,7 +1697,7 @@ if (COARSE){ const sub = $("#v-usage p.sub"); sub.textContent = sub.textContent.
 let lastPointerType = COARSE ? "touch" : "mouse";
 const pointers = new Map(); let dragging = false, downX=0, downY=0, lastX=0, lastY=0, lastT=0, pinchD=0, mouseX=-1, mouseY=-1, mouseMoved=false;
 function touchUI(){ view.lastInteract = performance.now(); view.flying = false; }
-let panMode = false, pinchMX = 0, pinchMY = 0, tapBlocked = false, lastTapT = 0, lastTapX = 0, lastTapY = 0;
+let panMode = false, pinchMX = 0, pinchMY = 0, tapBlocked = false, lastTapT = 0, lastTapX = 0, lastTapY = 0, lastTapHit = false, tipUntil = 0, selectedAt = -1e9;
 canvas.addEventListener("contextmenu", e => e.preventDefault());
 canvas.addEventListener("pointerdown", e => {
   lastPointerType = e.pointerType || "mouse";
@@ -1732,9 +1738,14 @@ function endPointer(e){
     dragging = false; canvas.classList.remove("dragging");
     if (performance.now()-lastT > 80) view.yawVel = view.pitchVel = 0;
     if (!wasDrag && e.type === "pointerup"){
-      const now = performance.now(), hit = hitTest(e.clientX, e.clientY);
-      const dbl = lastPointerType === "touch" && now - lastTapT < 320 && Math.hypot(e.clientX-lastTapX, e.clientY-lastTapY) < 30;
-      lastTapT = now; lastTapX = e.clientX; lastTapY = e.clientY;
+      const now = performance.now();
+      const near = now - lastTapT < 450 && Math.hypot(e.clientX-lastTapX, e.clientY-lastTapY) < 40;
+      if (lastPointerType === "touch" && near && lastTapHit){ touchUI(); return; }   // second tap of a double tap on a tower: the globe is already flying there, so the spot under the finger is now something else
+      if (lastPointerType === "touch" && now - selectedAt < 700){ touchUI(); return; }   // likewise any tap while the globe is still flying to a fresh selection
+      const hit = hitTest(e.clientX, e.clientY);
+      const dbl = lastPointerType === "touch" && near && !lastTapHit;
+      lastTapT = now; lastTapX = e.clientX; lastTapY = e.clientY; lastTapHit = !!hit;
+      if (hit && lastPointerType === "touch"){ state.hoverHit = hit; tipUntil = now + 1800; showTip(hit); }   // name the tapped tower for a moment
       if (hit && hit.type === "tower" && hit.t.isCity){ const c = hit.t.cityOf; focusCity(c, cityObjects(c).indexOf(hit.t.ref)); }
       else if (hit && hit.type === "tower") select(hit.t.ref);
       else if (hit && hit.type === "dc") selectDC(hit.d);
@@ -1790,9 +1801,9 @@ function showTip(hit, x, y){
     if (hit.type === "tower"){
       const r = hit.t.ref;
       if (r.isCity) tip.innerHTML = `<b>${r.name}</b><span>${r.country.name} · usage index <em>${Math.round(r.usageIndex)}</em> · <em>${r.rel.toFixed(1)}×</em> national average · ≈<em>${fmtM(r.activeUsers)}</em> users</span>`;
-      else tip.innerHTML = `<b>${r.name}</b><span>usage index <em>${r.usageIndex.toFixed(r.isContinent?1:0)}</em> · active users <em>${fmtM(r.activeUsers)}</em>${r.isContinent?` · ${r.countries} countries shown`:""}</span>${hz ? `<span class="hz">Top of the tower, showing over the horizon</span>` : ""}<span class="cta">click for the full story</span>`;
+      else tip.innerHTML = `<b>${r.name}</b><span>usage index <em>${r.usageIndex.toFixed(r.isContinent?1:0)}</em> · active users <em>${fmtM(r.activeUsers)}</em>${r.isContinent?` · ${r.countries} countries shown`:""}</span>${hz ? `<span class="hz">Top of the tower, showing over the horizon</span>` : ""}${lastPointerType === "touch" ? "" : `<span class="cta">click for the full story</span>`}`;
     } else {
-      tip.innerHTML = `<b>${hit.d.name}</b><span>${OPERATOR_LABEL[hit.d.operator]} data centre · ${hit.d.city}</span><span class="cta">click for details</span>`;
+      tip.innerHTML = `<b>${hit.d.name}</b><span>${OPERATOR_LABEL[hit.d.operator]} data centre · ${hit.d.city}</span>${lastPointerType === "touch" ? "" : `<span class="cta">click for details</span>`}`;
     }
   }
   const a = tipAnchor(hit);   // the label follows the object, not the cursor, so it stays correct while the globe moves
@@ -1820,6 +1831,10 @@ const hexCss = h => "#"+h.toString(16).padStart(6,"0");
 $("#lg-prov").innerHTML = PROVIDERS.map(p => `<li><i class="sw" style="background:${hexCss(PROVIDER_COLOR[p])}"></i>${PROVIDER_LABEL[p]}</li>`).join("");
 $("#lg-op").innerHTML = OPERATORS.map(o => `<li><i class="sw dc" style="background:${hexCss(OPERATOR_COLOR[o])};color:${hexCss(OPERATOR_COLOR[o])}"></i>${OPERATOR_LABEL[o]}</li>`).join("");
 
+/* phones: the sheet slides up under the finger when a tower is tapped, so a second quick tap would land on a tab or a row and send the user elsewhere; the sheet ignores taps for its first half second */
+let sheetOpenedAt = -1e9;
+function openSheet(){ const p = $("#panel"); if (isNarrow() && p.classList.contains("strip")) sheetOpenedAt = performance.now(); p.classList.remove("strip"); }
+$("#panel").addEventListener("click", e => { if (isNarrow() && performance.now() - sheetOpenedAt < 600){ e.stopPropagation(); e.preventDefault(); } }, true);
 /* tabs */
 function syncSheet(){ const open = isNarrow() && !$("#panel").classList.contains("strip"); document.body.classList.toggle("sheet-open", open); resize(); }
 function showTab(name){
@@ -1889,7 +1904,7 @@ if (window.visualViewport){
     else panel.classList.remove("kb");
     syncSheet();
   };
-  vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit);
+  vv.addEventListener("resize", () => { resize(); fit(); }); vv.addEventListener("scroll", fit);
   searchEl.addEventListener("blur", () => setTimeout(fit, 60));
 }
 searchEl.addEventListener("keydown", e => {
@@ -1998,7 +2013,7 @@ function select(ref, keepTab, switching){
     if (!keepTab){ document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "v-"+state.tab)); }
     return;
   }
-  const t = ref._tower; placeRing(t);
+  const t = ref._tower; placeRing(t); selectedAt = performance.now();
   if (!view.autoPan) view.restoreDist = view.tDist;   // remember the zoom we came from, restored when the card closes
   sfx.select();
   if (!ref.isContinent){ showCities(ref); setFocus([t, ...cityTowers, ...state.pinned.map(p => p._tower)]); }
@@ -2010,7 +2025,7 @@ function select(ref, keepTab, switching){
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "v-card"));
   document.querySelectorAll(`.row[data-iso="${ref.iso}"]`).forEach(el => el.classList.add("sel"));
   $("#content").scrollTop = 0;
-  if (isNarrow()) $("#panel").classList.remove("strip");
+  openSheet();
   syncSheet();
   $("#closeCard").onclick = () => select(null);
   $("#backBtn").onclick = () => select(null);
@@ -2038,7 +2053,7 @@ const EXTRA_COUNTRY = {BH:"Bahrain", QA:"Qatar", BE:"Belgium"};
 const _dq = new THREE.Quaternion(), _dn = new THREE.Vector3(), _dup = new THREE.Vector3(0,1,0);
 function selectDC(d){
   const hadSel = !!(state.selected || state.selectedDC);
-  select(null, true, true); state.selectedDC = d;
+  select(null, true, true); state.selectedDC = d; selectedAt = performance.now();
   if (!hadSel) view.restoreDist = view.tDist;
   sfx.select();
   const c = DATA.countries.find(x => x.iso === d.iso), cname = c ? c.name : (EXTRA_COUNTRY[d.iso] || d.iso);
@@ -2053,7 +2068,7 @@ function selectDC(d){
     <div class="actions">${c ? `<button class="btn primary" id="toCountry">Open ${c.name}</button>` : ""}<button class="btn" id="backBtn">Back to list</button></div>`;
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "v-card"));
   $("#content").scrollTop = 0;
-  if (isNarrow()) $("#panel").classList.remove("strip");
+  openSheet();
   syncSheet();
   $("#closeCard").onclick = () => select(null); $("#backBtn").onclick = () => select(null);
   const tc = $("#toCountry"); if (tc) tc.onclick = () => select(c);
@@ -2164,7 +2179,7 @@ const eggs = (() => {
     if (active) active.visible = false;
     active = kind != null ? ships[kind] : ships[Math.floor(Math.random()*ships.length)];
     const depth = Math.random() < 0.65 ? -1.7 : 0.7;                            // mostly behind the globe, sometimes in front near the edges
-    const hh = Math.tan(camera.fov*deg/2)*(view.dist - depth), hw = hh*Math.max(1, (window.innerWidth-panelWidth())/window.innerHeight);
+    const hh = Math.tan(camera.fov*deg/2)*(view.dist - depth), hw = hh*Math.max(1, (VW-panelWidth())/VH);
     const dir = Math.random() < 0.5 ? 1 : -1;
     const yA = depth > 0 ? (Math.random() < 0.5 ? 1 : -1)*hh*0.85 : (Math.random()*1.4-0.7)*hh;
     const yB = depth > 0 ? yA + (Math.random()*0.3-0.15)*hh : (Math.random()*1.4-0.7)*hh;
@@ -2187,7 +2202,7 @@ const eggs = (() => {
   }
   function hit(px, py){
     if (!active || !active.visible) return false;
-    tmp.copy(active.position).project(camera); const x = (tmp.x+1)/2*window.innerWidth, y = (1-tmp.y)/2*window.innerHeight;
+    tmp.copy(active.position).project(camera); const x = VX + (tmp.x+1)/2*VW, y = VY + (1-tmp.y)/2*VH;
     if (Math.hypot(px-x, py-y) > 20) return false;
     const remaining = Math.max(0, 1 - (performance.now()-t0)/dur); t0 = performance.now() - (1-remaining)*1400; dur = 1400;   // zip off
     sfx.pin(); return true;
@@ -2253,6 +2268,7 @@ function frame(now){
   // hover is re-tested every frame (not just on mouse move) so it stays accurate while the globe turns or flies
   if (!dragging && pointers.size === 0 && mouseX >= 0 && lastPointerType !== "touch"){ mouseMoved = false; setHover(hitTest(mouseX, mouseY)); }
   else if (dragging && state.hovered){ setHover(null); }
+  if (tipUntil){ if (now < tipUntil && state.hoverHit && !dragging) showTip(state.hoverHit); else { tipUntil = 0; state.hoverHit = null; showTip(null); } }   // touch: the name follows the tower while it flies to centre
   // ring pulse, halos, counters
   if (ring.visible){ const p = (now - ring.userData.t0)/1000; const s = ring.userData.base; const pulse = s*(1+0.12*Math.sin(p*3)); ring.scale.set(pulse, pulse, pulse); ring.material.opacity = 0.65+0.3*Math.sin(p*3); }
   dcMesh.userData.halo.material.uniforms.t.value = now/1000;

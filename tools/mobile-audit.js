@@ -63,7 +63,7 @@ async function pinch(page, cx, cy, d0, d1, steps = 12) {
 }
 
 (async () => {
-  const browser = await puppeteer.launch({ headless: true, args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--no-sandbox"] });
+  const browser = await puppeteer.launch({ headless: true, protocolTimeout: 300000, args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--no-sandbox"] });
   const all = {};
   const only = (process.argv[4] || "").split(",").filter(Boolean);
   for (const d of DEVICES) {
@@ -72,13 +72,13 @@ async function pinch(page, cx, cy, d0, d1, steps = 12) {
     const logs = [];
     page.on("pageerror", e => logs.push("pageerror: " + e.message));
     page.on("console", m => { if (m.type() === "error") logs.push("console: " + m.text()); });
-    await page.emulate({ viewport: { width: d.w, height: d.h, deviceScaleFactor: 1, isMobile: d.mobile, hasTouch: true, isLandscape: d.w > d.h }, userAgent: UA });
+    await page.emulate({ viewport: { width: d.w, height: d.h, deviceScaleFactor: d.dpr, isMobile: d.mobile, hasTouch: true, isLandscape: d.w > d.h }, userAgent: UA });
     // intro first
-    await page.goto("file://" + FILE, { waitUntil: "load" }); await sleep(2500);
+    await page.goto("file://" + FILE, { waitUntil: "load", timeout: 90000 }); await sleep(2500);
     await page.screenshot({ path: `${OUT}/${d.name}-0-intro.png` });
     const introR = await page.evaluate(rectsScript);
     const introIssues = []; const ib = introR["#intro .ibox"]; if (ib && (ib.y < 0 || ib.y + ib.h > d.h)) introIssues.push(`intro box offscreen (${ib.y}..${ib.y + ib.h} of ${d.h})`);
-    await page.goto("file://" + FILE + "?nointro", { waitUntil: "load" }); await sleep(3500);
+    await page.goto("file://" + FILE + "?nointro", { waitUntil: "load", timeout: 90000 }); await sleep(3500);
     await page.screenshot({ path: `${OUT}/${d.name}-1-idle.png` });
     const R = await page.evaluate(rectsScript);
     const issues = [...introIssues, ...report(d.name, R)];
