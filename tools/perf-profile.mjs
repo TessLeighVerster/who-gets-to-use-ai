@@ -43,6 +43,9 @@ rows.push(["max zoom, Europe", await measure()]);
 // 3) panel open (South Africa selected, sheet open)
 await page.evaluate(() => { const { panel: P, DATA } = window.__exhibit; P.select(DATA.countries.find(c => c.iso === "ZA")); }); await settle(3500);
 rows.push(["panel open (ZA)", await measure()]);
+// 4) six-ish arcs visible (United States: in-country sites plus the nearest foreign ones)
+await page.evaluate(() => { const { panel: P, DATA } = window.__exhibit; P.select(DATA.countries.find(c => c.iso === "US")); }); await settle(3500);
+rows.push([`US selected (${await page.evaluate(() => window.__exhibit.scene.arcCount())} arcs)`, await measure()]);
 const q = await page.evaluate(() => (window.__exhibit.scene.quality && window.__exhibit.scene.quality.tier) || "n/a");
 await browser.close(); srv.close();
 console.log(`${opt.label || ""} quality=${q} · 4x CPU, 390×844 @3x, ${FRAMES} frames each (software WebGL)`);

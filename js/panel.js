@@ -214,7 +214,7 @@ function select(ref, keepTab, switching){
   if (!view.autoPan) view.restoreDist = view.tDist;   // remember the zoom we came from, restored when the card closes
   sfx.select();
   if (!ref.isContinent){ showCities(ref); setFocus([t, ...cityTowers, ...state.pinned.map(p => p._tower)]); }
-  if (!ref.isContinent) showArcs(ref.servedBy.map(d => ({from:t.pos, to:d._pos, color:OPERATOR_COLOR[d.operator]})));
+  if (!ref.isContinent) showArcs(ref.servedBy.map(d => ({from:t.pos, to:d._pos, color:OPERATOR_COLOR[d.operator], dc:d})));
   const L = t.n * ref.growthCurve[state.year] * t.dims.h;                                  // this tower's height once settled
   const Lmax = Math.max(L, ...cityTowers.map(ct => ct.n * ct.dims.h * (ct.cityOf === ref ? ref.growthCurve[state.year] : 0)));
   flyTo(ref, fitDistFor(ref.isContinent ? L : Lmax), L);                                  // whole tower in frame, its midpoint dead centre
@@ -256,7 +256,7 @@ function selectDC(d){
   if (!hadSel) view.restoreDist = view.tDist;
   sfx.select();
   const c = DATA.countries.find(x => x.iso === d.iso), cname = c ? c.name : (EXTRA_COUNTRY[d.iso] || d.iso);
-  showArcs(d.serves.slice(0,14).map(cc => ({from:d._pos, to:cc._tower.pos, color:OPERATOR_COLOR[d.operator]})));
+  showArcs(d.serves.slice(0,14).map(cc => ({from:d._pos, to:cc._tower.pos, color:OPERATOR_COLOR[d.operator], dc:d})));
   _dn.copy(d._pos).normalize(); _dq.setFromUnitVectors(_dup, _dn); placeRingAt(d._pos, _dq, DC_BRICK.w*1.6);
   flyTo(d, Math.min(view.tDist, lerp(view.minDist, view.maxDist, 0.25)), 0);
   const col = hexCss(OPERATOR_COLOR[d.operator]);

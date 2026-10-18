@@ -1,9 +1,9 @@
   :root{
-    --bg:#14120f; --panel:rgba(24,24,27,0.72); --line:rgba(255,255,255,0.08); --fill:rgba(120,120,128,0.22); --fill-strong:rgba(255,255,255,0.14); --glass:blur(28px) saturate(170%); --shadow:0 12px 40px rgba(0,0,0,.38);
+    --bg:#15171c; --panel:rgba(24,24,27,0.72); --line:rgba(255,255,255,0.08); --fill:rgba(120,120,128,0.22); --fill-strong:rgba(255,255,255,0.14); --glass:blur(28px) saturate(170%); --shadow:0 12px 40px rgba(0,0,0,.38);
     --text:#f5f5f7; --muted:rgba(245,245,247,0.6); --accent:#f5f5f7; --accent-dim:rgba(255,255,255,0.10);
     --ease:cubic-bezier(.22,.8,.3,1); --panel-w:420px;
-    --c-anthropic:#cf6f4e; --c-openai:#ece7dc; --c-google:#3a8ad6; --c-meta:#6a4fb8; --c-mistral:#e8651a; --c-deepseek:#2fb8a6; --c-local:#9a948a;
-    --o-aws:#e09a2a; --o-microsoft:#7aa82a; --o-google:#3a8ad6; --o-meta:#6a4fb8; --o-oracle:#d8463d; --o-other:#d070e0;
+    --c-anthropic:#d67a5a; --c-openai:#f0ece3; --c-google:#4a95dc; --c-meta:#7a60c6; --c-mistral:#ee7430; --c-deepseek:#3cc4b2; --c-local:#a8a299;
+    --o-aws:#e6a53e; --o-microsoft:#86b43a; --o-google:#4a95dc; --o-meta:#7a60c6; --o-oracle:#de564d; --o-other:#d880e6;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{overscroll-behavior:none}
@@ -37,7 +37,7 @@
   #legend h4{font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:500}
   #legend ul{list-style:none;display:grid;grid-template-columns:repeat(2,auto);gap:6px 18px}
   #legend li{display:flex;align-items:center;gap:8px;font-size:15px;white-space:nowrap}
-  .sw{width:14px;height:10px;border-radius:3px;position:relative;flex:none;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+  .sw{width:14px;height:10px;border-radius:3px;position:relative;flex:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,0,0,.25),0 1px 0 rgba(0,0,0,.35)}
   .sw::after{content:"";position:absolute;left:3px;right:3px;top:-3px;height:3px;border-radius:2px 2px 0 0;background:inherit;filter:brightness(1.15)}
   .sw.dc{width:12px;height:6px;border-radius:2px;box-shadow:0 0 8px currentColor}
   .sw.dc::after{display:none}
@@ -116,8 +116,14 @@
   .card h2{font-size:28px;letter-spacing:-0.025em;font-weight:600;line-height:1.05}
   .card .cont{font-size:14px;color:var(--muted);margin-top:4px}
   .card .x{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);font-size:18px;flex:none}
-  .bricks{display:flex;gap:3px;margin:16px 0 6px;height:30px}
-  .brick{position:relative;border-radius:5px;min-width:6px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.28);transition:flex .4s var(--ease)}
+  .bricks{display:flex;gap:3px;margin:22px 0 8px;height:34px;align-items:flex-end}
+  /* each segment is a plastic brick seen from slightly above: bevelled edges, a row of studs drawn as highlights along the top */
+  .brick{position:relative;height:34px;border-radius:4px;min-width:8px;transition:flex .4s var(--ease);
+    background-image:radial-gradient(circle at 10px 9px,rgba(255,255,255,.30) 0 4.5px,rgba(0,0,0,.14) 5px 6px,transparent 6.5px);background-size:20px 100%;background-repeat:repeat-x;background-position:0 0;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 1px 0 0 rgba(255,255,255,.14),inset -1px 0 0 rgba(0,0,0,.18),inset 0 -5px 0 rgba(0,0,0,.22),0 2px 0 rgba(0,0,0,.35)}
+  .brick::after{content:"";position:absolute;left:0;right:0;top:-7px;height:7px;border-radius:4px 4px 0 0;background:inherit;background-image:none;filter:brightness(1.06);
+    -webkit-mask:radial-gradient(circle at 10px 100%,#000 0 5px,transparent 5.5px) 0 0/20px 100% repeat-x;mask:radial-gradient(circle at 10px 100%,#000 0 5px,transparent 5.5px) 0 0/20px 100% repeat-x;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
   .brick::before{content:"";position:absolute;left:5px;right:5px;top:-4px;height:5px;border-radius:3px 3px 0 0;background:inherit;filter:brightness(1.12)}
   .blegend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin-bottom:14px}
   .blegend span{display:inline-flex;align-items:center;gap:6px}
@@ -217,7 +223,7 @@
   /* intro: a claim, one line of explanation, one call to action. Shown over #placeholder before the 3D scene is ready. */
   #placeholder{position:fixed;inset:0;z-index:1;pointer-events:none;background:var(--bg);transition:opacity .6s var(--ease)}
   #placeholder i{position:absolute;left:50%;top:50%;width:min(78vmin,760px);height:min(78vmin,760px);transform:translate(-50%,-50%);border-radius:50%;
-    background:radial-gradient(circle,rgba(190,186,176,.28) 1.2px,transparent 1.9px) 0 0/12px 12px,#1e2522;
+    background:radial-gradient(circle,rgba(200,205,215,.26) 1.2px,transparent 1.9px) 0 0/12px 12px,#262a33;
     -webkit-mask:radial-gradient(circle at 42% 40%,#000 0,rgba(0,0,0,.55) 55%,rgba(0,0,0,.08) 100%);mask:radial-gradient(circle at 42% 40%,#000 0,rgba(0,0,0,.55) 55%,rgba(0,0,0,.08) 100%);
     box-shadow:0 0 0 1px rgba(255,241,220,.08),0 0 60px rgba(0,0,0,.5)}
   body.ready #placeholder{opacity:0}

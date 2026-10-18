@@ -8,6 +8,7 @@ import { DATA, CONTINENTS, CONT } from "./model.js";
 import { state, view, COARSE } from "./state.js";
 import { sfx } from "./sfx.js";
 import { writeUrlState } from "./urlState.js";
+import { createArcs } from "./arcs.js";
 import { select, selectDC, focusCity, syncSheet, searchEl, toggleTicker } from "./panel.js";
 
 /* Land mask: 180 columns × 90 rows, 2° cells. Row 0 is lat +90..+88, column 0 is lon -180..-178.
@@ -119,7 +120,7 @@ const isLand = (lat, lon) => {
 const canvas = $("#scene");
 const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false, powerPreference:"high-performance"});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, window.matchMedia("(max-width:900px)").matches ? 1.5 : 2));   // lighter on phones
-renderer.setClearColor(0x07080c, 1);
+renderer.setClearColor(0x15171c, 1);
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 50);
@@ -128,7 +129,7 @@ scene.add(world);
 
 /* lighting: one warm key light and one cool, low hemisphere fill. No shadows, no point lights. */
 const key = new THREE.DirectionalLight(0xfff1dc, 1.75); key.position.set(-2.5, 3, 4); scene.add(key);
-const hemi = new THREE.HemisphereLight(0x8ea2c4, 0x2a2521, 0.6); scene.add(hemi);
+const hemi = new THREE.HemisphereLight(0x9fb0cf, 0x2b2a30, 0.8); scene.add(hemi);
 
 /* quality tier: "low" on phones (small viewport at 2x+), on <=4-core devices, or when the first 60 frames average under
    50 fps (js/main.js calls setQuality); "high" otherwise. ?quality=low|high overrides. Low = high minus the textures. */
@@ -150,8 +151,8 @@ const studTex = canvasTexture(512, (g, s) => { g.fillStyle = "#b4b4b4"; g.fillRe
     g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, r, 0, Math.PI*2); g.fill(); } }, [48, 24]);
 const discTex = canvasTexture(64, (g, s) => { const grd = g.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2); grd.addColorStop(0, "rgba(255,255,255,1)"); grd.addColorStop(0.55, "rgba(255,255,255,0.55)"); grd.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = grd; g.fillRect(0, 0, s, s); });
 
-/* baseplate: a dark warm grey-green plate with a low-contrast stud pattern (texture, not geometry) */
-const plateMat = new THREE.MeshStandardMaterial({color:0x1e2522, roughness:0.9, metalness:0, roughnessMap: quality.tier === "high" ? studTex : null, bumpMap: quality.tier === "high" ? studTex : null, bumpScale:0.0022});
+/* baseplate: a deep blue-charcoal plate with a low-contrast stud pattern (texture, not geometry) */
+const plateMat = new THREE.MeshStandardMaterial({color:0x272b34, roughness:0.9, metalness:0, roughnessMap: quality.tier === "high" ? studTex : null, bumpMap: quality.tier === "high" ? studTex : null, bumpScale:0.0022});
 const globe = new THREE.Mesh(new THREE.SphereGeometry(R, 96, 64), plateMat);
 world.add(globe);
 /* faint warm rim so the plate's edge separates from the near-black background */
@@ -170,15 +171,6 @@ function setQuality(tier){
   dcMat.roughnessMap = hi ? noiseTex : null; dcMat.flatShading = !hi; dcMat.needsUpdate = true;
 }
 
-/* round sprite texture for the arc packets (canvas-generated; no network) */
-function discTexture(size, soft){
-  const cv = document.createElement("canvas"); cv.width = cv.height = size;
-  const g = cv.getContext("2d"); const grd = g.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
-  grd.addColorStop(0,"rgba(255,255,255,1)"); grd.addColorStop(soft?0.25:0.8,"rgba(255,255,255,"+(soft?0.6:1)+")"); grd.addColorStop(1,"rgba(255,255,255,0)");
-  g.fillStyle = grd; g.fillRect(0,0,size,size);
-  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t;
-}
-const glowTex = discTexture(128,true);
 
 /* data layers for the land dots. Bands are tested in order; the on-screen key is generated from the same table. */
 const LAYERS = {
@@ -229,8 +221,8 @@ let landDots;
     owner[i] = bd < Math.cos(24*deg) ? -1 : best;                              // far from any listed country: no data
   }
   const skins = {}, cc = new THREE.Color();
-  const skin = (name, fn) => { const arr = new Float32Array(n*3); for (let i=0;i<n;i++){ cc.setHex(owner[i] < 0 ? (name === "plain" ? 0x3b423d : 0x2a2f2b) : fn(DATA.countries[owner[i]])); arr[i*3]=cc.r; arr[i*3+1]=cc.g; arr[i*3+2]=cc.b; } skins[name] = arr; };
-  skin("plain", () => 0x3b423d);                                                 // faint: the geography reads without competing with the towers
+  const skin = (name, fn) => { const arr = new Float32Array(n*3); for (let i=0;i<n;i++){ cc.setHex(owner[i] < 0 ? (name === "plain" ? 0x474d5a : 0x343842) : fn(DATA.countries[owner[i]])); arr[i*3]=cc.r; arr[i*3+1]=cc.g; arr[i*3+2]=cc.b; } skins[name] = arr; };
+  skin("plain", () => 0x474d5a);                                                 // faint: the geography reads without competing with the towers
   Object.keys(LAYERS).forEach(k => skin(k, c => LAYERS[k].bands.find(b => b.test(c)).hex));
   const discGeo = new THREE.CircleGeometry(1, 6); discGeo.rotateX(-Math.PI/2);   // flat hexagonal discs on the plate (6 triangles each: 12,000 dots = 72k triangles)
   landDots = new THREE.InstancedMesh(discGeo, new THREE.MeshBasicMaterial({color:0xffffff}), n);
@@ -371,9 +363,9 @@ world.add(bricks, studs);
 /* contact discs: a soft dark disc under every tower stands in for a contact shadow (one transparent InstancedMesh, depthWrite off) */
 const CONTACT_EXTRA = 40;   // spare instances (arc end caps)
 const contactGeo = new THREE.CircleGeometry(1, 20); contactGeo.rotateX(-Math.PI/2);
-const contact = new THREE.InstancedMesh(contactGeo, new THREE.MeshBasicMaterial({map:discTex, color:0x000000, transparent:true, opacity:0.5, depthWrite:false}), towers.length + CONTACT_EXTRA);
+const contact = new THREE.InstancedMesh(contactGeo, new THREE.MeshBasicMaterial({map:discTex, color:0xffffff, transparent:true, opacity:0.55, depthWrite:false}), towers.length + CONTACT_EXTRA);
 contact.frustumCulled = false; contact.renderOrder = 1; world.add(contact);
-{ const Z = new THREE.Matrix4().makeScale(0,0,0); for (let i = 0; i < towers.length + CONTACT_EXTRA; i++) contact.setMatrixAt(i, Z); contact.instanceMatrix.needsUpdate = true; }
+{ const Z = new THREE.Matrix4().makeScale(0,0,0), black = new THREE.Color(0x000000); for (let i = 0; i < towers.length + CONTACT_EXTRA; i++){ contact.setMatrixAt(i, Z); contact.setColorAt(i, black); } contact.instanceMatrix.needsUpdate = contact.instanceColor.needsUpdate = true; }
 /* imperfection, set once from a seeded PRNG (stable across reloads, never animated): per brick a rotation jitter of ±0.6°
    about its own axis, a lateral offset of ±1.5% of the brick width, ±3% lightness and ±2% saturation; per tower a lean of
    up to ~1° that accumulates with height; about one brick in forty sits 4% proud of its slot. */
@@ -466,52 +458,12 @@ function stepTowers(now){
     c.servedBy = set; set.forEach(d => d.serves.push(c));
   });
 }
-const arcs = new THREE.Group(); world.add(arcs);
-const ARC_MAT = new THREE.ShaderMaterial({ transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
-  uniforms:{ t:{value:0}, c:{value:new THREE.Color(0xffffff)}, map:{value:glowTex}, scale:{value:600} },
-  vertexShader:`attribute float u; uniform float t; uniform float scale; varying float vA;
-    void main(){ float d = fract(u*5.0 - t*0.9); float pulse = smoothstep(0.0,0.2,d)*smoothstep(0.55,0.3,d); float ends = smoothstep(0.0,0.06,u)*smoothstep(1.0,0.94,u);
-    vA = (0.35+0.65*pulse)*ends; vec4 mv = modelViewMatrix*vec4(position,1.0); gl_PointSize = (0.014+0.012*pulse)*scale/(-mv.z); gl_Position = projectionMatrix*mv; }`,
-  fragmentShader:`uniform sampler2D map; uniform vec3 c; varying float vA; void main(){ float a = texture2D(map, gl_PointCoord).a; gl_FragColor = vec4(c*a*vA*1.6, a*vA); }` });
-const _pa = new THREE.Vector3(), _pb = new THREE.Vector3(), _pm = new THREE.Vector3();
-function makeArc(from, to, colorHex){
-  const N = 96, pos = new Float32Array(N*3), u = new Float32Array(N);
-  _pa.copy(from).normalize(); _pb.copy(to).normalize();
-  const ang = Math.acos(clamp(_pa.dot(_pb), -1, 1)), lift = 0.05 + 0.28*Math.min(1, ang/Math.PI*1.6);
-  for (let i=0;i<N;i++){
-    const f = i/(N-1), sa = Math.sin((1-f)*ang)/Math.sin(ang||1e-6), sb = Math.sin(f*ang)/Math.sin(ang||1e-6);
-    if (ang < 1e-4) _pm.copy(_pa); else _pm.set(_pa.x*sa+_pb.x*sb, _pa.y*sa+_pb.y*sb, _pa.z*sa+_pb.z*sb).normalize();
-    _pm.multiplyScalar(R*(1.004 + lift*Math.sin(f*Math.PI)));
-    pos[i*3]=_pm.x; pos[i*3+1]=_pm.y; pos[i*3+2]=_pm.z; u[i]=f;
-  }
-  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos,3)); g.setAttribute("u", new THREE.BufferAttribute(u,1));
-  const m = ARC_MAT.clone(); m.uniforms.c.value = new THREE.Color(colorHex); m.uniforms.map.value = glowTex; m.uniforms.scale.value = window.innerHeight*0.75;
-  const line = new THREE.Points(g, m); line.frustumCulled = false; line.userData.pos = pos; return line;
-}
-const packetGeo = new THREE.BufferGeometry(); packetGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(16*3),3)); packetGeo.setAttribute("color", new THREE.BufferAttribute(new Float32Array(16*3),3));
-const packets = new THREE.Points(packetGeo, new THREE.PointsMaterial({size:0.035, sizeAttenuation:true, map:glowTex, vertexColors:true, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending}));
-packets.frustumCulled = false; packets.visible = false; packets.material.size = 0.05; world.add(packets);
-function clearArcs(){ while (arcs.children.length){ const l = arcs.children.pop(); l.geometry.dispose(); l.material.dispose(); } packets.visible = false; }
-function showArcs(pairs){   // pairs: [{from:Vector3, to:Vector3, color}]
-  clearArcs();
-  pairs.slice(0,16).forEach(pr => arcs.add(makeArc(pr.from, pr.to, pr.color)));
-  packetGeo.setDrawRange(0, arcs.children.length); packets.visible = arcs.children.length > 0;
-  const col = packetGeo.attributes.color.array, c = new THREE.Color();
-  arcs.children.forEach((l,i) => { c.copy(l.material.uniforms.c.value); col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b; });
-  packetGeo.attributes.color.needsUpdate = true;
-}
-function stepArcs(now){
-  if (!packets.visible) return;
-  const tt = now/1000, pp = packetGeo.attributes.position.array;
-  arcs.children.forEach((l,i) => {
-    l.material.uniforms.t.value = tt;
-    const f = (tt*0.22 + i*0.17) % 1, k = Math.min(94, Math.floor(f*95)), r = f*95 - k, p = l.userData.pos;
-    pp[i*3]   = p[k*3]  *(1-r) + p[(k+1)*3]  *r;
-    pp[i*3+1] = p[k*3+1]*(1-r) + p[(k+1)*3+1]*r;
-    pp[i*3+2] = p[k*3+2]*(1-r) + p[(k+1)*3+2]*r;
-  });
-  packetGeo.attributes.position.needsUpdate = true;
-}
+/* arcs: solid plastic tubes in the operator colour (js/arcs.js). Spare contact-disc instances become the end caps. */
+const arcsCtl = createArcs({ world, contact, contactBase: towers.length, contactSpare: CONTACT_EXTRA, isPhone: () => isNarrow(), lowTier: () => quality.tier === "low" });
+function clearArcs(){ arcsCtl.clear(); }
+function showArcs(pairs){ arcsCtl.show(pairs); }   // pairs: [{from:Vector3, to:Vector3, color, dc}]
+function stepArcs(now){ arcsCtl.step(now); }
+const arcCount = () => arcsCtl.count;
 
 function targetBricks(t){
   if (t.isCity) return (state.mode === "countries" && t.cityOf && state.selected === t.cityOf) ? t.n * t.cityOf.growthCurve[state.year] : 0;
@@ -603,6 +555,7 @@ function resize(){
   const pw = panelWidth();
   renderer.setSize(W, H, false);
   camera.aspect = W/H; camera.updateProjectionMatrix();
+  arcsCtl.setResolution(W, H);
   // centre the globe in the main area: the viewport minus the side panel; on phones with the sheet open, the area above the sheet
   const sheetOpen = nowNarrow && !$("#panel").classList.contains("strip");
   const sheetH = sheetOpen ? Math.min(H*0.8, $("#panel").offsetHeight + 10) : 0;   // centre the globe in the strip of screen above the open sheet
@@ -847,6 +800,7 @@ function setHover(hit){
     if (t){ setTowerTint(t, true); sfx.hover(); }
   }
   state.hoverHit = hit || null;
+  arcsCtl.highlight(hit && hit.type === "dc" ? hit.d : null);
   canvas.classList.toggle("pointing", !!hit);
   if (hit){ showTip(hit, mouseX, mouseY); view.lastInteract = performance.now(); }   // hovering pauses the auto-rotate so the target stays put
   else showTip(null);
@@ -995,5 +949,5 @@ export {
   applyView, panBy, zoomAt, isNarrow, panelWidth, measureCanvas, resize, fitDistFor, flyTo,
   toScreen, castAt, hitTest, endPointer, dragging, lastPointerType, markSelected, stepHover, showTip, setHover,
   setMode, resetView, eggs, updateCompass,
-  quality, setQuality, contact, BRICKS_PER_INDEX_POINT, noiseTex, studTex, discTex
+  quality, setQuality, contact, BRICKS_PER_INDEX_POINT, noiseTex, studTex, discTex, arcCount
 };
