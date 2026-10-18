@@ -21,7 +21,9 @@ Static, no-build exhibit deployed by GitHub Pages from `main` (custom domain in 
 - `js/colors.js`: `PROVIDER_COLOR`, `OPERATOR_COLOR`, `CONTINENT_COLOR` and `CSS_TOKENS`, a mirror of the `:root` tokens in `styles.css` (styles.css is the source of truth).
 
 ## 4. Intro overlay and side panel
-- Intro: `#intro` markup in `index.html` (styles under `#intro`, `.ibox` in `styles.css`); dismissal logic at the bottom of `js/main.js` (click, any key, 9.4 s timer, `?nointro`). Example-search buttons carry `data-q`.
+- Intro: `#intro` markup in `index.html` (styles under `#intro`, `.ibox`, `#placeholder` in `styles.css`). Three beats: headline + `HERO_STAT` (constant in `js/main.js`; the two country names are links that open that country), one line of explanation, a CTA "See {Country} →" that opens the detected country's card (fallback "See where you stand →" focuses search) and "or explore the globe".
+- `js/intro.js` wires the overlay as an `async` module that depends only on `js/geo.js` (time zone → ISO2 table, then `navigator.language` region; `GEO_OVERRIDE_URL` is the hook for a future `/api/geo`) and `data/countryNames.js`, so it is interactive at ~0.7 s on Slow 4G + 4x CPU; it then starts the Three.js download (`threeReady`) and `js/main.js` awaits it before importing scene.js/panel.js. Actions chosen before the scene exists are queued (`intro.pending`) and run on the first rendered frame, which also adds `body.ready` (fades `#placeholder`, the static dot-grid globe) and starts the 9.4 s auto-dismiss. Escape dismisses. `sessionStorage.introSeen` skips it on later loads in the session; `?intro=1` forces, `?intro=0` / `?nointro` skip. The source marker sets `?panel=methodology` and dispatches an `open-panel` event (methodology panel still to build). `prefers-reduced-motion` turns off auto-rotate and the intro animations.
+- `tools/intro-perf.mjs` measures intro interactivity on the throttled profile; `tools/shots.mjs` takes desktop + phone screenshots.
 - Panel: `<aside id="panel">` with tabs Usage / Spend / Access / Key (Key is phone-only) and the card view `#v-card`. `js/panel.js` fills the lists, renders `cardHTML(ref)` and the data-centre card, handles search, pins, the bottom-sheet drag on phones (`.strip` = tucked away, `syncSheet()` re-centres the globe) and the live counters (`tickCounters`).
 
 ## 5. Head metadata
@@ -29,7 +31,7 @@ Static, no-build exhibit deployed by GitHub Pages from `main` (custom domain in 
 - `og.png` is rendered from `tools/og-template.html` by `tools/render-og.mjs` (plain HTML + inline SVG, no WebGL); the hero stat is the `HERO_STAT` constant in the template (placeholder, marked TODO).
 
 ## 6. Routing and URL state
-- None. The only URL input is `?nointro` (read in `js/main.js`). Selection, tab and layer are in-memory (`state` in `js/state.js`); `keyCollapsed` is the only persisted preference (localStorage).
+- URL inputs: `?intro=0|1`, `?nointro` (js/intro.js), `?panel=methodology` (set by the source marker; panel not built yet). Selection, tab and layer are in-memory (`state` in `js/state.js`); `keyCollapsed` (localStorage) and `introSeen` (sessionStorage) are the only persisted bits.
 
 ## 7. Styling
 - Tokens on `:root` in `styles.css`: `--bg #07080c`, `--panel`, `--line`, `--fill`, `--text #f5f5f7`, `--muted`, `--accent` (monochrome; no yellow accent), `--ease`, `--panel-w 420px`, plus `--c-*` provider and `--o-*` operator colours.

@@ -1,30 +1,68 @@
-/* Bootstrap: the frame loop, the intro overlay and the initial resize. Importing scene.js and panel.js builds the
-   globe and fills the panel as a side effect. */
+/* Bootstrap. Order matters for a slow phone: the intro is wired first (it needs only the data and js/geo.js), then
+   Three.js is loaded from cdnjs as a global, then scene.js and panel.js are imported (building the globe and filling
+   the panel as a side effect) and the frame loop starts. Until the first frame has rendered, #placeholder shows a
+   static dot-grid globe behind the intro. */
 import { $, clamp, lerp, deg } from "./util.js";
 import { state, view } from "./state.js";
-import { renderer, scene, camera, towers, targetBricks, animateTower, stepTowers, stepFocus, eggs, dragging, applyView, stepHover, ring, dcMesh, stepArcs, focus, updateCompass, resize, isNarrow } from "./scene.js";
-import { select, syncSheet, searchEl, runSearch, tickCounters } from "./panel.js";
+import { DATA } from "./model.js";
+import { intro, threeReady } from "./intro.js";
+
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* The claim the intro leads with. Country names become links that open that country's card. The numbers are read from
+   the data (subscriptionShareOfIncome: a US$20/month plan as a share of GDP per capita per month, see data/countries.js). */
+export const HERO_STAT = {
+  a: "NO", b: "CD",
+  text: (a, b) => `A $20 AI subscription costs <b>${a.subscriptionShareOfIncome}%</b> of monthly income per person in ${link(a)} and <b>${b.subscriptionShareOfIncome}%</b> in ${link(b)}.`
+};
+const link = c => `<a href="?country=${c.iso}" data-iso="${c.iso}">${c.name}</a>`;
+
+/* =====================================================================================
+   INTRO: wired by js/intro.js before this module runs; here the hero sentence is re-rendered from the data and the
+   queued action (open a country, focus search) is carried out once the scene is ready.
+   ===================================================================================== */
+{
+  const A = DATA.countries.find(c => c.iso === HERO_STAT.a), B = DATA.countries.find(c => c.iso === HERO_STAT.b);
+  const hero = $("#heroStat"); if (hero){ const src = $("#heroSrc"); hero.innerHTML = HERO_STAT.text(A, B) + (src ? " " + src.outerHTML : ""); }
+}
+let app = null;              // { select, showTab, searchEl, syncSheet, isNarrow } once scene.js/panel.js are loaded
+function runPending(){
+  if (!app || !intro.pending) return;
+  const p = intro.take();
+  if (p.select){ const c = DATA.countries.find(x => x.iso === p.select); if (c){ app.showTab("usage"); app.select(c); } }
+  else if (p.search){ if (app.isNarrow()){ $("#panel").classList.remove("strip"); app.syncSheet(); } app.searchEl.focus(); }
+}
+intro.onAction(runPending);
+
+/* =====================================================================================
+   LOAD THREE.JS (global from cdnjs), THEN THE SCENE AND THE PANEL
+   ===================================================================================== */
+await threeReady;   // started by js/intro.js as soon as the overlay was wired
+const [S, P] = await Promise.all([import("./scene.js"), import("./panel.js")]);
+const { renderer, scene, camera, towers, targetBricks, animateTower, stepTowers, stepFocus, eggs, applyView, stepHover, ring, dcMesh, stepArcs, focus, updateCompass, resize, isNarrow } = S;
+const { select, showTab, syncSheet, searchEl, tickCounters } = P;
+app = { select, showTab, searchEl, syncSheet, isNarrow };
 
 /* =====================================================================================
    FRAME LOOP
    ===================================================================================== */
-let last = performance.now();
+let last = performance.now(), ready = false;
 function frame(now){
   requestAnimationFrame(frame);
   const dt = Math.min(0.05, (now-last)/1000); last = now;
   // build-up on first frames
   if (!state.built){ state.built = true; towers.forEach((t,i) => { const tgt = targetBricks(t); if (tgt>0) animateTower(t, tgt, 1700, 250 + (i%17)*45 + (i*7%5)*30, now); }); setTimeout(()=>$("#hint").classList.add("show"), 2600); }
   stepTowers(now); stepFocus(dt); eggs.step(now, dt);
-  // orbit: inertia, auto-rotate after 3 s idle, smoothing
+  // orbit: inertia, auto-rotate after 3 s idle (not when the visitor prefers reduced motion), smoothing
   const hasSel = !!(state.selected || state.selectedDC);
   if (hasSel && now - view.lastInteract > 90000) select(null);
   const idle = !hasSel && now - view.lastInteract > 3000;
-  if (!dragging){
+  if (!S.dragging){
     if (Math.abs(view.yawVel) > 1e-5 || Math.abs(view.pitchVel) > 1e-5){
       view.tYaw += view.yawVel; view.tPitch = clamp(view.tPitch + view.pitchVel, -80*deg, 80*deg);
       const damp = Math.pow(0.92, dt*60); view.yawVel *= damp; view.pitchVel *= damp;
       if (Math.abs(view.yawVel) < 1e-5) view.yawVel = 0; if (Math.abs(view.pitchVel) < 1e-5) view.pitchVel = 0;
-    } else if (idle && !view.flying){ view.tYaw += 0.06*dt; }
+    } else if (idle && !view.flying && !reduceMotion){ view.tYaw += 0.06*dt; }
   }
   const k = view.flying ? 1-Math.pow(0.001, dt) : 1-Math.pow(0.0005, dt);
   view.yaw = lerp(view.yaw, view.tYaw, view.flying ? Math.min(1, dt*3.2) : k);
@@ -34,7 +72,6 @@ function frame(now){
   if (view.flying && Math.abs(view.yaw-view.tYaw) < 0.002 && Math.abs(view.pitch-view.tPitch) < 0.002) view.flying = false;
   if (!view.flying && idle){ view.yaw = view.tYaw; } // no lag while auto-rotating
   applyView();
-  // hover
   // hover is re-tested every frame (not just on mouse move) so it stays accurate while the globe turns or flies
   stepHover(now);
   // ring pulse, halos, counters
@@ -44,20 +81,7 @@ function frame(now){
   { const b = (0.8 + 0.35*Math.sin(now/1000*2.2))*(focus.dcMul||1); dcMesh.material.color.setRGB(b,b,b); }
   tickCounters(now); updateCompass();
   renderer.render(scene, camera);
-}
-
-/* intro: short welcome on load; any click, key or the timer dismisses it */
-{
-  const el = $("#intro"); let done = false;
-  document.body.classList.add("intro");
-  const dismiss = q => { if (done) return; done = true; el.classList.add("out"); document.body.classList.remove("intro"); setTimeout(() => el.remove(), 450);
-    if (q){ searchEl.value = q; runSearch(); if (isNarrow()){ $("#panel").classList.remove("strip"); syncSheet(); } searchEl.focus(); } };
-  $("#introGo").addEventListener("click", () => dismiss());
-  el.querySelectorAll("[data-q]").forEach(b => b.addEventListener("click", () => dismiss(b.dataset.q)));
-  el.addEventListener("click", e => { if (e.target === el) dismiss(); });
-  window.addEventListener("keydown", () => dismiss(), {once:true});
-  setTimeout(() => dismiss(), 9400);
-  if (location.search.includes("nointro")) dismiss();
+  if (!ready){ ready = true; document.body.classList.add("ready"); setTimeout(() => { const ph = $("#placeholder"); if (ph) ph.remove(); }, 700); intro.startTimer(); runPending(); }   // the real scene is on screen: drop the placeholder, run what the intro queued
 }
 
 /* init */

@@ -26,11 +26,13 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <meta name="theme-color" content="#07080c">
 <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="intro">
 <canvas id="scene"></canvas>
+<div id="placeholder" aria-hidden="true"><i></i></div>
 
 <div id="title">
   <h1>Who gets to build with AI?</h1>
@@ -127,21 +129,15 @@
 
 <div id="intro" role="dialog" aria-label="Welcome">
   <div class="ibox">
-    <div class="eyebrow">An interactive exhibit</div>
-    <h2>Who gets to use AI?</h2>
-    <p class="lead">Every tower is a country. Its height is how much people there use AI. Its colours are whose models they use.</p>
-    <div class="try"><span class="lbl">Search for</span>
-      <button data-q="Nigeria"><b>a country</b><span>Nigeria · Japan · Brazil</span></button>
-      <button data-q="Bengaluru"><b>a city</b><span>Bengaluru · Lagos · Dublin</span></button>
-      <button data-q="Virginia"><b>a data centre</b><span>Virginia · Hamina · Cape Town</span></button>
-    </div>
-    <p class="how"><span class="mouse">Click any tower for the full story · drag to rotate · scroll to zoom</span><span class="touch">Tap any tower for the full story · drag to rotate · pinch to zoom · two fingers to move</span> · switch on the <b>Power</b> and <b>Data cost</b> maps</p>
-    <button class="btn primary" id="introGo">Start exploring</button>
+    <h2>Who gets to build with AI?</h2>
+    <p class="hero" id="heroStat">A $20 AI subscription costs <b>0.3%</b> of monthly income per person in <a href="?country=NO" data-iso="NO">Norway</a> and <b>29.7%</b> in <a href="?country=CD" data-iso="CD">DR Congo</a>. <a class="src" id="heroSrc" href="?panel=methodology" title="How this is worked out">source</a></p>
+    <p class="lead">Every tower is a country. Height is how much people there use AI. Colour is whose models they're using. Glowing bricks are data centres.</p>
+    <div class="cta"><button class="btn primary" id="introGo">See where you stand →</button><button class="btn ghost" id="introExplore">or explore the globe</button></div>
     <div class="ibar"><i></i></div>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script type="module" async src="js/intro.js"></script>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>
