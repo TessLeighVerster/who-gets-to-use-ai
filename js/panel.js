@@ -6,6 +6,9 @@ import { PROVIDERS, PROVIDER_LABEL, PROVIDER_COLOR, OPERATORS, OPERATOR_LABEL, O
 import { DATA, CONTINENTS, YEARS, PROMPTS_PER_SECOND } from "./model.js";
 import { state, view, COARSE, TAP } from "./state.js";
 import { sfx } from "./sfx.js";
+import { detectCountry } from "./geo.js";
+import { shareCountry } from "./shareCard.js";
+import { writeUrlState } from "./urlState.js";
 import { MAX_BRICKS, DC_BRICK, CITY_BRICK, CITY_SLOTS, cityTowers, brickColors, cityObjects, showCities, setFocus, setTowerTint, clearArcs, showArcs, placeRing, placeRingAt, flyTo, fitDistFor, isNarrow, resize, setMode, markSelected } from "./scene.js";
 
 if (COARSE){ const sub = $("#v-usage p.sub"); sub.textContent = sub.textContent.replace("Click", "Tap"); }
@@ -14,6 +17,10 @@ if (COARSE){ const sub = $("#v-usage p.sub"); sub.textContent = sub.textContent.
 /* =====================================================================================
    SIDE PANEL UI
    ===================================================================================== */
+/* the visitor's own country (time zone / language, see js/geo.js) and the top country by usage index, for the "Your country" strip */
+const MY_ISO = detectCountry(new Set(DATA.countries.map(c => c.iso)));
+const topCountry = () => DATA.countries.reduce((a, b) => (b.usageIndex > a.usageIndex ? b : a), DATA.countries[0]);
+const estSpan = (c, field, html) => (c.provenance && c.provenance[field] && c.provenance[field].estimated) ? `<span class="est" title="Modelled estimate, not a sourced figure">${html}<sup>est.</sup></span>` : html;
 /* legend */
 $("#lg-prov").innerHTML = PROVIDERS.map(p => `<li><i class="sw" style="background:${hexCss(PROVIDER_COLOR[p])}"></i>${PROVIDER_LABEL[p]}</li>`).join("");
 $("#lg-op").innerHTML = OPERATORS.map(o => `<li><i class="sw dc" style="background:${hexCss(OPERATOR_COLOR[o])};color:${hexCss(OPERATOR_COLOR[o])}"></i>${OPERATOR_LABEL[o]}</li>`).join("");
@@ -25,7 +32,7 @@ $("#panel").addEventListener("click", e => { if (isNarrow() && performance.now()
 /* tabs */
 function syncSheet(){ const open = isNarrow() && !$("#panel").classList.contains("strip"); document.body.classList.toggle("sheet-open", open); resize(); }
 function showTab(name){
-  state.tab = name;
+  state.tab = name; writeUrlState({ tab: name });
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "v-"+name));
   $("#content").scrollTop = 0;
@@ -179,9 +186,11 @@ function cardHTML(r){
     facts = buys + routes + `<h3 class="sech">Capabilities</h3><ul class="facts caps">${r.capabilities.map(f => `<li>${f}</li>`).join("")}${dcs.length ? `<li class="dcl">${dcs.length} data centre${dcs.length===1?"":"s"} on the globe: ${dcs.map(d => `<button class="lnk" data-dc="${d.name}">${d.name} <span>(${OPERATOR_LABEL[d.operator]}, ${d.city})</span></button>`).join(", ")}</li>` : ""}</ul>
              <h3 class="sech">What holds adoption back</h3><ul class="facts bars">${r.barriers.map(f => `<li>${f}</li>`).join("")}</ul>
              <h3 class="sech">Notes</h3><ul class="facts">${r.facts.map(f => `<li>${f}</li>`).join("")}</ul>`;
-    actions = `<button class="btn ${isPinned?"":"primary"}" id="pinBtn">${isPinned?"Unpin":"Pin"}</button><button class="btn" id="backBtn">Back to list</button>`;
+    actions = `<button class="btn ${isPinned?"":"primary"}" id="pinBtn">${isPinned?"Unpin":"Pin"}</button><button class="btn" id="shareBtn">Share ${r.name}'s card</button><button class="btn" id="backBtn">Back to list</button>`;
   }
-  return `<div class="top"><div><h2>${r.name}</h2><div class="cont">${r.isContinent ? r.countries+" countries · "+fmtInt(r.population)+" M people" : r.continent+" · "+fmtInt(r.population)+" M people · "+r.dcCount+" data centre"+(r.dcCount===1?"":"s")+" shown"}</div></div><button class="x" id="closeCard" aria-label="Close">×</button></div>
+  const top = topCountry();
+  const mine = !r.isContinent && r.iso === MY_ISO ? `<div class="mine">You're in <b>${r.name}</b>. Usage index ${estSpan(r, "usageIndex", Math.round(r.usageIndex))} out of 100 (top country: ${top.name}). A $20/month AI plan costs ${estSpan(r, "subscriptionShareOfIncome", r.subscriptionShareOfIncome + "%")} of monthly income here — ${estSpan(top, "subscriptionShareOfIncome", top.subscriptionShareOfIncome + "%")} in ${top.name}.</div>` : "";
+  return mine + `<div class="top"><div><h2>${r.name}</h2><div class="cont">${r.isContinent ? r.countries+" countries · "+fmtInt(r.population)+" M people" : r.continent+" · "+fmtInt(r.population)+" M people · "+r.dcCount+" data centre"+(r.dcCount===1?"":"s")+" shown"}</div></div><button class="x" id="closeCard" aria-label="Close">×</button></div>
     <div class="bricks">${bricks}</div><div class="blegend">${bl}</div>
     <div class="stats">${stats.map(([n,u,l]) => `<div class="stat"><div class="n">${n}<small>${u}</small></div><div class="l">${l}</div></div>`).join("")}</div>
     ${facts}<div class="actions">${actions}</div>`;
@@ -190,6 +199,7 @@ function select(ref, keepTab, switching){
   const prev = state.selected;
   if (prev && prev._tower && prev._tower !== state.hovered) setTowerTint(prev._tower, false);
   state.selected = ref || null; state.selectedDC = null; state.selectedCity = null;
+  writeUrlState({ country: ref && !ref.isContinent ? ref.iso : null });
   if (!ref || ref.isContinent){ showCities(null); setFocus(null); }
   document.querySelectorAll(".row.sel").forEach(el => el.classList.remove("sel"));
   clearArcs();
@@ -219,7 +229,9 @@ function select(ref, keepTab, switching){
   const wireDC = () => { cardEl.querySelectorAll("[data-dc]").forEach(b => b.onclick = () => selectDC(DATA.datacentres.find(d => d.name === b.dataset.dc)));
     cardEl.querySelectorAll("[data-city]").forEach(li => li.onclick = () => focusCity(ref, +li.dataset.city)); };
   wireDC();
-  const pb = $("#pinBtn"); if (pb) pb.onclick = () => { togglePin(ref); cardEl.innerHTML = cardHTML(ref); $("#closeCard").onclick = () => select(null); $("#backBtn").onclick = () => select(null); $("#pinBtn").onclick = pb.onclick; wireDC(); };
+  const wireShare = () => { const sb = $("#shareBtn"); if (sb) sb.onclick = async () => { sb.disabled = true; try { await shareCountry(ref); } finally { sb.disabled = false; } }; };
+  wireShare();
+  const pb = $("#pinBtn"); if (pb) pb.onclick = () => { togglePin(ref); cardEl.innerHTML = cardHTML(ref); $("#closeCard").onclick = () => select(null); $("#backBtn").onclick = () => select(null); $("#pinBtn").onclick = pb.onclick; wireDC(); wireShare(); };
 }
 
 /* fly to one city inside the selected country */

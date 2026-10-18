@@ -248,6 +248,13 @@
   @media (max-height:520px){ #intro{padding:8px 0} .ibox{width:calc(100% - 24px);padding:16px 22px 14px;border-radius:20px} .ibox h2{font-size:26px} .ibox .hero{font-size:17px;margin-top:8px} .ibox .lead{font-size:13px;margin:8px 0 12px} #introGo{padding:9px 18px;font-size:15px} }
   @media (prefers-reduced-motion:reduce){ #intro,.ibox h2,.ibox .hero,.ibox .lead,.ibox .cta{animation:none;opacity:1} .ibar{display:none} }
   /* tooltip */
+  /* personalised strip at the top of the visitor's own country card; .est is the shared "modelled estimate" styling (methodology panel uses it too) */
+  .card .mine{margin:0 0 14px;padding:12px 14px;border-radius:14px;background:var(--fill);border:1px solid var(--line);font-size:14px;line-height:1.45;color:var(--text)}
+  .card .mine b{font-weight:600}
+  .est{text-decoration:underline dotted rgba(255,255,255,.45);text-underline-offset:3px}
+  .est sup{font-size:.65em;color:var(--muted);margin-left:2px;font-weight:500}
+  #toast{position:fixed;left:50%;bottom:28px;z-index:30;transform:translate(-50%,16px);opacity:0;pointer-events:none;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:14px;background:rgba(28,28,30,.92);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);font-size:14px;color:var(--text);transition:opacity .25s var(--ease),transform .25s var(--ease);overflow-wrap:anywhere}
+  #toast.show{opacity:1;transform:translate(-50%,0)}
   #tip{position:fixed;left:0;top:0;z-index:8;pointer-events:none;opacity:0;transform:translate(-50%,calc(-100% - 18px));padding:10px 14px;border-radius:14px;background:rgba(28,28,30,.86);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);transition:opacity .2s var(--ease);white-space:nowrap}
   #tip b{display:block;font-size:16px;font-weight:600;margin-bottom:3px}
   #tip span{font-size:13px;color:var(--muted)}

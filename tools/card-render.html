@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>card render harness</title>
+<!-- Loaded by tools/render-cards.mjs over the repo's static server. Draws one country card with js/cardTemplate.js on a canvas
+     and exposes window.renderCard(iso, w, h) → data URL, so the link-preview PNGs come from the same code as the in-app share. -->
+<canvas id="c"></canvas>
+<script type="module">
+  import { DATA } from "../js/model.js";
+  import { cardModel, drawCard } from "../js/cardTemplate.js";
+  window.renderCard = async (iso, w, h) => {
+    const c = DATA.countries.find(x => x.iso === iso); if (!c) throw new Error("unknown iso " + iso);
+    const cv = document.getElementById("c"); cv.width = w; cv.height = h;
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    drawCard(cv.getContext("2d"), cardModel(c, DATA.countries), w, h);
+    return cv.toDataURL("image/png");
+  };
+  window.isos = DATA.countries.map(c => c.iso);
+  window.ready = true;
+</script>

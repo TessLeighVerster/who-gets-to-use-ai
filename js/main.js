@@ -6,6 +6,7 @@ import { $, clamp, lerp, deg } from "./util.js";
 import { state, view } from "./state.js";
 import { DATA } from "./model.js";
 import { intro, threeReady } from "./intro.js";
+import { readUrlState } from "./urlState.js";
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -42,6 +43,14 @@ const [S, P] = await Promise.all([import("./scene.js"), import("./panel.js")]);
 const { renderer, scene, camera, towers, targetBricks, animateTower, stepTowers, stepFocus, eggs, applyView, stepHover, ring, dcMesh, stepArcs, focus, updateCompass, resize, isNarrow } = S;
 const { select, showTab, syncSheet, searchEl, tickCounters } = P;
 app = { select, showTab, searchEl, syncSheet, isNarrow };
+/* deep links: ?layer= and ?tab= apply as soon as the scene is ready; ?country= opens that card (and skipped the intro) */
+function applyUrlState(){
+  const u = readUrlState();
+  if (u.layer && u.layer !== "none") S.setLayer(u.layer, true);
+  if (u.tab && ["usage", "spend", "access", "key"].includes(u.tab)) showTab(u.tab);
+  const c = u.country && DATA.countries.find(x => x.iso === u.country);
+  if (c && !intro.pending) select(c);
+}
 
 /* =====================================================================================
    FRAME LOOP
@@ -81,7 +90,7 @@ function frame(now){
   { const b = (0.8 + 0.35*Math.sin(now/1000*2.2))*(focus.dcMul||1); dcMesh.material.color.setRGB(b,b,b); }
   tickCounters(now); updateCompass();
   renderer.render(scene, camera);
-  if (!ready){ ready = true; document.body.classList.add("ready"); setTimeout(() => { const ph = $("#placeholder"); if (ph) ph.remove(); }, 700); intro.startTimer(); runPending(); }   // the real scene is on screen: drop the placeholder, run what the intro queued
+  if (!ready){ ready = true; document.body.classList.add("ready"); setTimeout(() => { const ph = $("#placeholder"); if (ph) ph.remove(); }, 700); intro.startTimer(); applyUrlState(); runPending(); }   // the real scene is on screen: drop the placeholder, run what the intro queued
 }
 
 /* init */

@@ -33,7 +33,7 @@ function startTimer(ms = 9400){   // called when the 3D scene is on screen, so a
 }
 
 const seen = (() => { try { return sessionStorage.getItem("introSeen") === "1"; } catch (_) { return false; } })();
-const skip = params.get("intro") === "0" || params.has("nointro") || (params.get("intro") !== "1" && seen);
+const skip = params.get("intro") === "0" || params.has("nointro") || params.has("country") || (params.get("intro") !== "1" && seen);   // a deep link goes straight to its country
 
 // beat 1: country names in the claim open that country; the source marker opens the methodology panel (?panel=methodology)
 $("#heroStat").addEventListener("click", e => {

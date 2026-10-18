@@ -7,6 +7,7 @@ import { PROVIDERS, PROVIDER_COLOR, OPERATOR_COLOR, OPERATOR_LABEL } from "./col
 import { DATA, CONTINENTS, CONT } from "./model.js";
 import { state, view, COARSE } from "./state.js";
 import { sfx } from "./sfx.js";
+import { writeUrlState } from "./urlState.js";
 import { select, selectDC, focusCity, syncSheet, searchEl, toggleTicker } from "./panel.js";
 
 /* Land mask: 180 columns × 90 rows, 2° cells. Row 0 is lat +90..+88, column 0 is lon -180..-178.
@@ -226,7 +227,7 @@ let landDots;
 }
 function setLayer(name, quiet){
   if (!LAYERS[name]) name = "none";
-  state.layer = name;
+  state.layer = name; writeUrlState({ layer: name });
   landDots.geometry.setAttribute("color", name === "none" ? landDots.userData.skins.plain : landDots.userData.skins[name]); landDots.geometry.attributes.color.needsUpdate = true;
   landDots.material.size = name === "none" ? 0.014 : 0.017;
   const group = name === "dataShare" ? "data" : name;
