@@ -234,7 +234,6 @@ function select(ref, keepTab, switching){
   if (!ref || ref.isContinent){ showCities(null); setFocus(null); }
   document.querySelectorAll(".row.sel").forEach(el => el.classList.remove("sel"));
   clearArcs();
-  const fab0 = $("#shareFab"); if (fab0) fab0.hidden = true;
   if (!ref){
     placeRing(null); setDCFocus(null); retarget(700, false);
     if (prev || state.selectedDC) sfx.close();
@@ -264,7 +263,6 @@ function select(ref, keepTab, switching){
   wireDC();
   const wireShare = () => { const sb = $("#shareBtn"); if (sb) sb.onclick = async () => { sb.disabled = true; try { await shareCountry(ref); } finally { sb.disabled = false; } }; };
   wireShare();
-  const fab = $("#shareFab"); if (fab && !ref.isContinent){ fab.hidden = false; fab.querySelector("span").textContent = `Share ${ref.name}'s card`; fab.onclick = async () => { fab.disabled = true; try { await shareCountry(ref); } finally { fab.disabled = false; } }; }
   const pb = $("#pinBtn"); if (pb) pb.onclick = () => { togglePin(ref); cardEl.innerHTML = cardHTML(ref); $("#closeCard").onclick = () => select(null); $("#backBtn").onclick = () => select(null); $("#pinBtn").onclick = pb.onclick; wireDC(); wireShare(); };
 }
 

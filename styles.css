@@ -1,5 +1,5 @@
   :root{
-    --bg:#15171c; --panel:rgba(24,24,27,0.72); --line:rgba(255,255,255,0.08); --fill:rgba(120,120,128,0.22); --fill-strong:rgba(255,255,255,0.14); --glass:blur(28px) saturate(170%); --shadow:0 12px 40px rgba(0,0,0,.38);
+    --bg:#22252d; --panel:rgba(32,34,42,0.72); --line:rgba(255,255,255,0.08); --fill:rgba(120,120,128,0.22); --fill-strong:rgba(255,255,255,0.14); --glass:blur(28px) saturate(170%); --shadow:0 12px 40px rgba(0,0,0,.38);
     --text:#f5f5f7; --muted:rgba(245,245,247,0.6); --accent:#f5f5f7; --accent-dim:rgba(255,255,255,0.10);
     --ease:cubic-bezier(.22,.8,.3,1); --panel-w:420px;
     --serif:"Instrument Serif","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif; --rule:1px dashed rgba(255,255,255,.22);
@@ -240,13 +240,13 @@
   .ibox .thumb{position:absolute;right:-70px;top:-40px;width:420px;height:420px;margin:0;pointer-events:none;opacity:0;animation:rise .8s var(--ease) .5s forwards;-webkit-mask:radial-gradient(circle at 50% 50%,#000 0 40%,rgba(0,0,0,.6) 58%,transparent 70%);mask:radial-gradient(circle at 50% 50%,#000 0 40%,rgba(0,0,0,.6) 58%,transparent 70%)}
   .ibox .thumb img{width:100%;height:100%;object-fit:cover;display:block}
   .ibox h2{font-size:clamp(40px,5.6vw,68px);line-height:.98;opacity:0;animation:rise .6s var(--ease) .4s forwards;position:relative}
-  .ibox .hero{font-family:var(--serif);font-size:clamp(22px,2.5vw,31px);line-height:1.22;letter-spacing:0;margin:20px 0 0;color:var(--text);overflow-wrap:anywhere;opacity:0;animation:rise .6s var(--ease) .7s forwards}
-  .ibox .hero b{font-weight:400;font-style:italic;color:#efe9d6}
+  .ibox .hero{font-family:var(--sans);font-weight:500;font-size:clamp(20px,2.2vw,28px);line-height:1.25;letter-spacing:-0.015em;margin:20px 0 0;color:var(--text);overflow-wrap:anywhere;opacity:0;animation:rise .6s var(--ease) .7s forwards}
+  .ibox .hero b{font-weight:600;font-style:normal;color:#efe9d6}
   .ibox .hero a{color:var(--text);text-decoration:underline;text-decoration-color:rgba(255,255,255,.35);text-underline-offset:3px;text-decoration-thickness:1.5px;transition:text-decoration-color .2s}
   .ibox .hero a:hover{text-decoration-color:var(--text)}
   .ibox .hero .src{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none;border:1px solid rgba(255,255,255,.2);border-radius:3px;padding:3px 7px;vertical-align:middle;margin-left:6px;white-space:nowrap}
   .ibox .hero .src:hover{color:var(--text);border-color:rgba(255,255,255,.3)}
-  .ibox .lead{font-family:var(--serif);font-size:clamp(16px,1.4vw,19px);color:rgba(245,245,247,.68);line-height:1.4;margin:18px 0 22px;padding-top:18px;border-top:var(--rule);max-width:600px;opacity:0;animation:rise .6s var(--ease) 1s forwards}
+  .ibox .lead{font-family:var(--sans);font-size:clamp(14px,1.2vw,16px);color:rgba(245,245,247,.68);line-height:1.4;margin:18px 0 22px;padding-top:18px;border-top:var(--rule);max-width:600px;opacity:0;animation:rise .6s var(--ease) 1s forwards}
   .ibox .cta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;opacity:0;animation:rise .5s var(--ease) 1.3s forwards}
   #introGo{padding:12px 22px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;border-radius:4px;background:#efe9d6;color:#0b0b0d;border-color:#efe9d6}
   #introGo:hover{background:#fff}
@@ -289,11 +289,6 @@
   .filterbar[hidden]{display:none}
   .filterbar .lnk{font-size:12px;color:var(--text);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
   /* floating share button in the globe area while a country is selected (phones: above the sheet) */
-  #shareFab{position:fixed;top:18px;right:calc(var(--panel-w) + 48px + 16px);z-index:9;display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:999px;background:#efe9d6;color:#0b0b0d;border:0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.45);transition:transform .25s var(--ease),opacity .25s var(--ease)}
-  #shareFab[hidden]{display:none}
-  #shareFab:hover{background:#fff}
-  body.pcol #shareFab{right:calc(108px + 48px)}
-  @media (max-width:900px) and (orientation:portrait),(max-width:600px){ #shareFab{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 58px);left:auto;right:14px;transform:none;padding:9px 14px;font-size:11px} #shareFab:hover{transform:none} }
   #tip{position:fixed;left:0;top:0;z-index:8;pointer-events:none;opacity:0;transform:translate(-50%,calc(-100% - 18px));padding:10px 14px;border-radius:14px;background:rgba(28,28,30,.86);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);transition:opacity .2s var(--ease);white-space:nowrap}
   #tip b{display:block;font-size:16px;font-weight:600;margin-bottom:3px}
   #tip span{font-size:13px;color:var(--muted)}

@@ -120,16 +120,18 @@ const isLand = (lat, lon) => {
 const canvas = $("#scene");
 const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false, powerPreference:"high-performance"});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, window.matchMedia("(max-width:900px)").matches ? 1.5 : 2));   // lighter on phones
-renderer.setClearColor(0x15171c, 1);
-renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
+renderer.setClearColor(0x22252d, 1);
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.12;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 50);
 const world = new THREE.Group();   // everything that rotates
 scene.add(world);
 
-/* lighting: one warm key light and one cool, low hemisphere fill. No shadows, no point lights. */
-const key = new THREE.DirectionalLight(0xfff1dc, 1.25); key.position.set(-2.5, 3, 4); scene.add(key);
-const hemi = new THREE.HemisphereLight(0xaab8d4, 0x3c3b44, 1.0); scene.add(hemi);
+/* lighting: a soft warm key, a faint cool counter-light, ambient and a bright hemisphere fill. No shadows, no point lights. */
+const key = new THREE.DirectionalLight(0xfff4e6, 0.8); key.position.set(-2, 3.5, 4.5); scene.add(key);
+const fill = new THREE.DirectionalLight(0xdfe6f2, 0.3); fill.position.set(3, 1, -2); scene.add(fill);   // soft counter-light so the shadow sides of bricks are never black
+scene.add(new THREE.AmbientLight(0xffffff, 0.42));
+const hemi = new THREE.HemisphereLight(0xc9d2e2, 0x7a7984, 1.1); scene.add(hemi);
 
 /* quality tier: "low" on phones (small viewport at 2x+), on <=4-core devices, or when the first 60 frames average under
    50 fps (js/main.js calls setQuality); "high" otherwise. ?quality=low|high overrides. Low = high minus the textures. */
@@ -173,7 +175,7 @@ const discTex = canvasTexture(64, (g, s) => { const grd = g.createRadialGradient
 }
 
 /* baseplate: a deep blue-charcoal plate with a low-contrast stud pattern (texture, not geometry) */
-const plateMat = new THREE.MeshStandardMaterial({color:0x272b34, roughness:0.9, metalness:0, roughnessMap: quality.tier === "high" ? studTex : null, bumpMap: quality.tier === "high" ? studTex : null, bumpScale:0.0022});
+const plateMat = new THREE.MeshStandardMaterial({color:0x434957, roughness:0.9, metalness:0, roughnessMap: quality.tier === "high" ? studTex : null, bumpMap: quality.tier === "high" ? studTex : null, bumpScale:0.0022});
 const globe = new THREE.Mesh(new THREE.SphereGeometry(R, 96, 64), plateMat);
 world.add(globe);
 /* faint warm rim so the plate's edge separates from the near-black background */
@@ -242,8 +244,8 @@ let landDots;
     owner[i] = bd < Math.cos(24*deg) ? -1 : best;                              // far from any listed country: no data
   }
   const skins = {}, cc = new THREE.Color();
-  const skin = (name, fn) => { const arr = new Float32Array(n*3); for (let i=0;i<n;i++){ cc.setHex(owner[i] < 0 ? (name === "plain" ? 0x474d5a : 0x343842) : fn(DATA.countries[owner[i]])); arr[i*3]=cc.r; arr[i*3+1]=cc.g; arr[i*3+2]=cc.b; } skins[name] = arr; };
-  skin("plain", () => 0x474d5a);                                                 // faint: the geography reads without competing with the towers
+  const skin = (name, fn) => { const arr = new Float32Array(n*3); for (let i=0;i<n;i++){ cc.setHex(owner[i] < 0 ? (name === "plain" ? 0x6b7382 : 0x525866) : fn(DATA.countries[owner[i]])); arr[i*3]=cc.r; arr[i*3+1]=cc.g; arr[i*3+2]=cc.b; } skins[name] = arr; };
+  skin("plain", () => 0x6b7382);                                                 // faint: the geography reads without competing with the towers
   Object.keys(LAYERS).forEach(k => skin(k, c => LAYERS[k].bands.find(b => b.test(c)).hex));
   const discGeo = new THREE.CircleGeometry(1, 6); discGeo.rotateX(-Math.PI/2);   // flat hexagonal discs on the plate (6 triangles each: 12,000 dots = 72k triangles)
   landDots = new THREE.InstancedMesh(discGeo, new THREE.MeshBasicMaterial({color:0xffffff}), n);
@@ -390,7 +392,7 @@ world.add(bricks, studs);
 /* contact discs: a soft dark disc under every tower stands in for a contact shadow (one transparent InstancedMesh, depthWrite off) */
 const CONTACT_EXTRA = 40;   // spare instances (arc end caps)
 const contactGeo = new THREE.CircleGeometry(1, 20); contactGeo.rotateX(-Math.PI/2);
-const contact = new THREE.InstancedMesh(contactGeo, new THREE.MeshBasicMaterial({map:discTex, color:0xffffff, transparent:true, opacity:0.55, depthWrite:false}), towers.length + CONTACT_EXTRA);
+const contact = new THREE.InstancedMesh(contactGeo, new THREE.MeshBasicMaterial({map:discTex, color:0xffffff, transparent:true, opacity:0.38, depthWrite:false}), towers.length + CONTACT_EXTRA);
 contact.frustumCulled = false; contact.renderOrder = 1; world.add(contact);
 { const Z = new THREE.Matrix4().makeScale(0,0,0), black = new THREE.Color(0x000000); for (let i = 0; i < towers.length + CONTACT_EXTRA; i++){ contact.setMatrixAt(i, Z); contact.setColorAt(i, black); } contact.instanceMatrix.needsUpdate = contact.instanceColor.needsUpdate = true; }
 /* imperfection, set once from a seeded PRNG (stable across reloads, never animated): per brick a rotation jitter of ±0.6°
