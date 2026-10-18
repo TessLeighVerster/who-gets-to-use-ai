@@ -1,0 +1,58 @@
+/** Data centres shown on the globe. Fields: name, operator (aws|microsoft|google|meta|oracle|other), lat, lon, city, iso, note (one line). */
+export const datacentres = [
+    // ---- AWS ----
+    { name:"us-east-1", operator:"aws", lat:39.04, lon:-77.49, city:"Ashburn, Virginia", iso:"US", note:"AWS's first region (2006); Northern Virginia is the densest data-centre cluster on earth." },
+    { name:"us-west-2", operator:"aws", lat:45.60, lon:-121.18, city:"Boardman, Oregon", iso:"US", note:"Hydro-powered Columbia River campuses; hosts much of AWS's GPU capacity." },
+    { name:"eu-west-1", operator:"aws", lat:53.35, lon:-6.26, city:"Dublin", iso:"IE", note:"AWS's first European region; now limited by Dublin grid constraints." },
+    { name:"eu-central-1", operator:"aws", lat:50.11, lon:8.68, city:"Frankfurt", iso:"DE", note:"Frankfurt, home of the DE-CIX exchange and Europe's largest DC market." },
+    { name:"eu-north-1", operator:"aws", lat:59.33, lon:18.07, city:"Stockholm", iso:"SE", note:"Stockholm region chosen for cheap, renewable Nordic power." },
+    { name:"ap-northeast-1", operator:"aws", lat:35.68, lon:139.69, city:"Tokyo", iso:"JP", note:"Tokyo, one of Asia's oldest and busiest cloud regions." },
+    { name:"ap-southeast-1", operator:"aws", lat:1.35, lon:103.82, city:"Singapore", iso:"SG", note:"Singapore hub serving Southeast Asia; under national power caps." },
+    { name:"ap-southeast-2", operator:"aws", lat:-33.87, lon:151.21, city:"Sydney", iso:"AU", note:"Sydney region serving Australia and New Zealand." },
+    { name:"ap-south-1", operator:"aws", lat:19.08, lon:72.88, city:"Mumbai", iso:"IN", note:"Mumbai region; AWS pledged $12B+ more for India by 2030." },
+    { name:"sa-east-1", operator:"aws", lat:-23.55, lon:-46.63, city:"São Paulo", iso:"BR", note:"São Paulo, the main cloud region for all of South America." },
+    { name:"af-south-1", operator:"aws", lat:-33.93, lon:18.42, city:"Cape Town", iso:"ZA", note:"Cape Town, AWS's only African region (2020)." },
+    { name:"me-south-1", operator:"aws", lat:26.07, lon:50.56, city:"Manama, Bahrain", iso:"BH", note:"Bahrain region serving the Gulf." },
+    { name:"ap-east-1", operator:"aws", lat:22.32, lon:114.17, city:"Hong Kong", iso:"CN", note:"Hong Kong region; access from mainland China is restricted." },
+    // ---- Microsoft ----
+    { name:"West US 2", operator:"microsoft", lat:47.23, lon:-119.85, city:"Quincy, Washington", iso:"US", note:"Quincy, Washington: hydro-powered Microsoft campuses." },
+    { name:"Central US", operator:"microsoft", lat:41.60, lon:-93.61, city:"Des Moines, Iowa", iso:"US", note:"Iowa campuses where GPT-4 was trained on Azure supercomputers." },
+    { name:"South Central US", operator:"microsoft", lat:29.42, lon:-98.49, city:"San Antonio, Texas", iso:"US", note:"San Antonio, one of Azure's largest US regions." },
+    { name:"West Europe", operator:"microsoft", lat:52.37, lon:4.90, city:"Amsterdam", iso:"NL", note:"Amsterdam region, constrained by Dutch grid capacity." },
+    { name:"South Africa North", operator:"microsoft", lat:-26.20, lon:28.05, city:"Johannesburg", iso:"ZA", note:"Johannesburg, Microsoft's first African region (2019)." },
+    { name:"Central India", operator:"microsoft", lat:18.52, lon:73.86, city:"Pune", iso:"IN", note:"Pune region; part of a $3B Microsoft India build-out." },
+    { name:"UAE North", operator:"microsoft", lat:25.20, lon:55.27, city:"Dubai", iso:"AE", note:"Dubai region; Microsoft holds a $1.5B stake in G42." },
+    { name:"Qatar Central", operator:"microsoft", lat:25.29, lon:51.53, city:"Doha", iso:"QA", note:"Doha region opened 2022." },
+    { name:"Chile Central", operator:"microsoft", lat:-33.45, lon:-70.67, city:"Santiago", iso:"CL", note:"Santiago, Microsoft's first South American region outside Brazil." },
+    { name:"Korea Central", operator:"microsoft", lat:37.57, lon:126.98, city:"Seoul", iso:"KR", note:"Seoul region serving Korea's heavy enterprise adoption." },
+    // ---- Google ----
+    { name:"us-central1", operator:"google", lat:41.26, lon:-95.86, city:"Council Bluffs, Iowa", iso:"US", note:"Council Bluffs, Iowa: Google's largest campus, home to TPU pods." },
+    { name:"us-west1", operator:"google", lat:45.59, lon:-121.18, city:"The Dalles, Oregon", iso:"US", note:"The Dalles, Oregon: Google's original hydro-cooled megasite." },
+    { name:"europe-north1", operator:"google", lat:60.57, lon:27.20, city:"Hamina", iso:"FI", note:"Hamina, Finland: seawater-cooled former paper mill." },
+    { name:"europe-west1", operator:"google", lat:50.45, lon:3.82, city:"St. Ghislain", iso:"BE", note:"St. Ghislain, Belgium: Google's first European campus." },
+    { name:"asia-east1", operator:"google", lat:24.05, lon:120.52, city:"Changhua", iso:"TW", note:"Changhua, Taiwan: Google's first Asian data centre." },
+    { name:"asia-south2", operator:"google", lat:28.61, lon:77.21, city:"Delhi", iso:"IN", note:"Delhi region, Google's second in India." },
+    { name:"southamerica-east1", operator:"google", lat:-23.53, lon:-46.79, city:"Osasco, São Paulo", iso:"BR", note:"Osasco, São Paulo: Google's South American hub." },
+    { name:"africa-south1", operator:"google", lat:-26.10, lon:28.06, city:"Johannesburg", iso:"ZA", note:"Johannesburg, Google's first African region (2024)." },
+    { name:"asia-southeast1", operator:"google", lat:1.33, lon:103.72, city:"Jurong West", iso:"SG", note:"Jurong West, Singapore: three campuses under power caps." },
+    // ---- Meta ----
+    { name:"Prineville", operator:"meta", lat:44.30, lon:-120.83, city:"Prineville, Oregon", iso:"US", note:"Meta's first owned data centre (2011), now a Llama training site." },
+    { name:"Hyperion", operator:"meta", lat:32.44, lon:-91.75, city:"Richland Parish, Louisiana", iso:"US", note:"Planned multi-gigawatt Louisiana campus for Meta's frontier models." },
+    { name:"Luleå", operator:"meta", lat:65.58, lon:22.15, city:"Luleå", iso:"SE", note:"Arctic Circle campus cooled by outside air and hydro power." },
+    { name:"Odense", operator:"meta", lat:55.40, lon:10.39, city:"Odense", iso:"DK", note:"Waste heat warms thousands of Danish homes." },
+    { name:"Clonee", operator:"meta", lat:53.41, lon:-6.44, city:"Clonee", iso:"IE", note:"Meta's Irish campus powered by wind contracts." },
+    { name:"Singapore", operator:"meta", lat:1.32, lon:103.65, city:"Tanjong Kling", iso:"SG", note:"Meta's 11-storey Tanjong Kling data centre." },
+    // ---- Oracle ----
+    { name:"Stargate Abilene", operator:"oracle", lat:32.45, lon:-99.73, city:"Abilene, Texas", iso:"US", note:"First Stargate site: OpenAI compute built by Oracle and Crusoe." },
+    { name:"Casablanca", operator:"oracle", lat:33.57, lon:-7.59, city:"Casablanca", iso:"MA", note:"Oracle's first African cloud region." },
+    { name:"Jeddah", operator:"oracle", lat:21.49, lon:39.19, city:"Jeddah", iso:"SA", note:"Oracle Saudi region tied to the kingdom's AI investment programme." },
+    // ---- Other ----
+    { name:"Colossus (xAI)", operator:"other", lat:35.15, lon:-90.05, city:"Memphis, Tennessee", iso:"US", note:"Memphis supercomputer, 200,000+ GPUs, contested gas turbines." },
+    { name:"Stargate UAE (G42)", operator:"other", lat:24.45, lon:54.65, city:"Abu Dhabi", iso:"AE", note:"Planned 5 GW Abu Dhabi campus; first 1 GW for OpenAI." },
+    { name:"Alibaba Cloud", operator:"other", lat:30.27, lon:120.15, city:"Hangzhou", iso:"CN", note:"Alibaba's home cloud region and Qwen training site." },
+    { name:"Tencent Gui'an", operator:"other", lat:26.42, lon:106.63, city:"Guiyang", iso:"CN", note:"Guizhou mountain data centre built into tunnels for cooling." },
+    { name:"Yotta NM1", operator:"other", lat:19.03, lon:73.02, city:"Navi Mumbai", iso:"IN", note:"Navi Mumbai GPU cloud hosting India's Nvidia clusters." },
+    { name:"Nscale Glomfjord", operator:"other", lat:66.82, lon:13.95, city:"Glomfjord", iso:"NO", note:"Hydro-powered Norwegian GPU site for European AI compute." },
+    { name:"Naver Sejong", operator:"other", lat:36.48, lon:127.29, city:"Sejong", iso:"KR", note:"Korea's largest hyperscale campus, runs HyperCLOVA X." },
+    { name:"Scaleway / Mistral", operator:"other", lat:48.86, lon:2.35, city:"Paris", iso:"FR", note:"Paris-region GPU capacity used by Mistral and French startups." }
+];
