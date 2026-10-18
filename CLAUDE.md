@@ -38,7 +38,7 @@ Static, no-build exhibit deployed by GitHub Pages from `main` (custom domain in 
 
 ## 7. Styling
 - Tokens on `:root` in `styles.css`: `--bg #15171c`, `--panel`, `--line`, `--fill`, `--text #f5f5f7`, `--muted`, `--accent` (monochrome; no yellow accent), `--ease`, `--panel-w 420px`, plus `--c-*` provider and `--o-*` operator colours, which mirror the ABS-plastic palette in `js/colors.js` (off-white #ece7dc for OpenAI, desaturated hues, warm grey for Local; weakest deuteranopia pair ΔE ≈ 12).
-- Font: system stack (`-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, …`). Panels are frosted glass (`backdrop-filter: var(--glass)`), 18px radii, 1px `--line` borders. Phone layout (`max-width:900px portrait` or `max-width:600px`) turns the panel into a bottom sheet.
+- Type: editorial pairing after every.to. Big titles (`#title h1`, intro `h2`, card `h2`) in Instrument Serif (Google Fonts, `--serif`, italic emphasis on one word), labels/kickers/bylines in small tracked uppercase system sans (`--sans`), dashed rules (`--rule`). The intro box is near-black (#0b0b0d), square-cornered (10px), with kicker, dashed rules, cream CTA. Everything else stays on the system sans stack. Panels are frosted glass (`backdrop-filter: var(--glass)`), 18px radii, 1px `--line` borders. Phone layout (`max-width:900px portrait` or `max-width:600px`) turns the panel into a bottom sheet.
 
 ## Testing
 - `NODE_PATH=<dir with puppeteer> node tools/behaviour-check.js out.json [baseline.json]` snapshots the UI (intro, ZA card values, tabs, layers, resetView, `?nointro`) and diffs against a baseline. Use it before and after any refactor.

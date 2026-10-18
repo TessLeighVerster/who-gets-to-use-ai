@@ -30,7 +30,7 @@ const browser = await puppeteer.launch({ headless: true, protocolTimeout: 600000
 // 2) the card itself
 const page = await browser.newPage();
 await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 1 });
-await page.goto("file://" + path.join(here, "og-template.html"), { waitUntil: "load" });
+await page.goto("file://" + path.join(here, "og-template.html"), { waitUntil: "networkidle0" });
 await page.evaluate(() => document.fonts.ready);
 await page.screenshot({ path: out, type: "png", clip: { x: 0, y: 0, width: 1200, height: 630 } });
 await browser.close();

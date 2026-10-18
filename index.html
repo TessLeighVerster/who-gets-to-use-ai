@@ -27,6 +27,9 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
 <meta name="theme-color" content="#15171c">
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -35,7 +38,7 @@
 <div id="placeholder" aria-hidden="true"><i></i></div>
 
 <div id="title">
-  <h1>Who gets to build with AI?</h1>
+  <h1>Who gets to <i>build</i> with AI?</h1>
   <p>AI usage, spending and infrastructure are concentrated in a handful of countries. Towers show usage per person. Colours show whose models.</p>
   <div id="ticker"><span class="n" id="prompts">0</span><span class="l">AI prompts sent worldwide<br>since you arrived <span class="rate">(≈46,000 / second)</span></span><button id="tickerHide" title="Hide counter (T)" aria-label="Hide counter">×</button></div>
   <button id="tickerShow" title="Show counter (T)">Show prompt counter</button>
@@ -130,10 +133,12 @@
 
 <div id="intro" role="dialog" aria-label="Welcome">
   <div class="ibox">
-    <h2>Who gets to build with AI?</h2>
+    <div class="kicker">An exhibit in plastic bricks · 62 countries</div>
+    <h2>Who gets to <i>build</i> with AI?</h2>
     <p class="hero" id="heroStat">A $20 AI subscription costs <b>0.3%</b> of monthly income per person in <a href="?country=NO" data-iso="NO">Norway</a> and <b>29.7%</b> in <a href="?country=CD" data-iso="CD">DR Congo</a>. <a class="src" id="heroSrc" href="?panel=methodology" title="How this is worked out">source</a></p>
     <p class="lead">Every tower is a country. Height is how much people there use AI. Colour is whose models they're using. Glowing bricks are data centres.</p>
     <div class="cta"><button class="btn primary" id="introGo">See where you stand →</button><button class="btn ghost" id="introExplore">or explore the globe</button></div>
+    <div class="byline"><span>Tessa Verster</span><span>World Bank · Cable.co.uk · Anthropic Economic Index</span></div>
     <div class="ibar"><i></i></div>
   </div>
 </div>
