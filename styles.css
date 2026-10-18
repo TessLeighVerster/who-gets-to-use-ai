@@ -235,8 +235,11 @@
   #intro{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;overflow-y:auto;overscroll-behavior:contain;padding:12px 0;background:radial-gradient(ellipse at center,rgba(7,8,12,.55),rgba(7,8,12,.88));backdrop-filter:blur(2px);opacity:0;animation:introIn .6s var(--ease) .2s forwards;transition:opacity .4s var(--ease)}
   #intro.out{opacity:0!important;pointer-events:none}
   body.intro #title,body.intro #hint{opacity:0;transition:none}
-  .ibox{position:relative;max-width:720px;width:calc(100% - 48px);margin:auto;padding:34px 40px 26px;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:#0b0b0d;box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:left;overflow:hidden}
-  .ibox h2{font-size:clamp(40px,5.6vw,68px);line-height:.98;opacity:0;animation:rise .6s var(--ease) .4s forwards}
+  .ibox{position:relative;max-width:980px;width:calc(100% - 48px);margin:auto;padding:34px 40px 26px;padding-right:calc(40px + 300px);border:1px solid rgba(255,255,255,.16);border-radius:10px;background:#0b0b0d;box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:left;overflow:hidden}
+  /* a real view of the towers, from the exhibit (rendered by tools/render-og.mjs), bleeding off the right edge */
+  .ibox .thumb{position:absolute;right:-70px;top:-40px;width:420px;height:420px;margin:0;pointer-events:none;opacity:0;animation:rise .8s var(--ease) .5s forwards;-webkit-mask:radial-gradient(circle at 50% 50%,#000 0 40%,rgba(0,0,0,.6) 58%,transparent 70%);mask:radial-gradient(circle at 50% 50%,#000 0 40%,rgba(0,0,0,.6) 58%,transparent 70%)}
+  .ibox .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .ibox h2{font-size:clamp(40px,5.6vw,68px);line-height:.98;opacity:0;animation:rise .6s var(--ease) .4s forwards;position:relative}
   .ibox .hero{font-family:var(--serif);font-size:clamp(22px,2.5vw,31px);line-height:1.22;letter-spacing:0;margin:20px 0 0;color:var(--text);overflow-wrap:anywhere;opacity:0;animation:rise .6s var(--ease) .7s forwards}
   .ibox .hero b{font-weight:400;font-style:italic;color:#efe9d6}
   .ibox .hero a{color:var(--text);text-decoration:underline;text-decoration-color:rgba(255,255,255,.35);text-underline-offset:3px;text-decoration-thickness:1.5px;transition:text-decoration-color .2s}
@@ -253,7 +256,8 @@
   @keyframes introIn{to{opacity:1}}
   @keyframes shrink{to{transform:scaleX(0)}}
   @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  @media (max-width:700px){ .ibox{padding:22px 22px 22px;width:calc(100% - 28px)} .ibox .lead{margin:14px 0 20px;padding-top:14px} .ibox .kicker span:last-child{display:none} }
+  @media (max-width:900px){ .ibox{padding-right:40px} .ibox .thumb{position:relative;right:auto;top:auto;width:calc(100% + 80px);height:170px;margin:-34px -40px 10px;-webkit-mask:linear-gradient(#000 55%,transparent);mask:linear-gradient(#000 55%,transparent)} .ibox .thumb img{object-position:50% 40%} }
+  @media (max-width:700px){ .ibox{padding:22px 22px 22px;width:calc(100% - 28px)} .ibox .thumb{width:calc(100% + 44px);margin:-22px -22px 8px;height:150px} .ibox .lead{margin:14px 0 20px;padding-top:14px} }
   @media (max-width:380px){ .ibox{padding:18px 16px 18px;width:calc(100% - 20px)} .ibox h2{font-size:36px} .ibox .hero{font-size:20px} .ibox .cta{gap:6px} #introGo{padding:10px 16px} .ibox .byline span:last-child{display:none} }
   @media (max-height:520px){ #intro{padding:8px 0} .ibox{width:calc(100% - 24px);padding:14px 22px 12px} .ibox .kicker{margin-bottom:10px;padding-bottom:8px} .ibox h2{font-size:30px} .ibox .hero{font-size:18px;margin-top:8px} .ibox .lead{font-size:14px;margin:8px 0 12px;padding-top:8px} .ibox .byline{margin-top:10px} }
   @media (prefers-reduced-motion:reduce){ #intro,.ibox .kicker,.ibox h2,.ibox .hero,.ibox .lead,.ibox .cta,.ibox .byline{animation:none;opacity:1} .ibar{display:none} }

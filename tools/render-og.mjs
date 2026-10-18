@@ -24,6 +24,7 @@ const browser = await puppeteer.launch({ headless: true, protocolTimeout: 600000
   const c = await p.evaluate(() => { const { scene: S, DATA } = window.__exhibit; const t = DATA.countries.find(c => c.iso === "NO")._tower; const v = t.pos.clone().addScaledVector(t.normal, t.n*t.dims.h*0.5).applyQuaternion(S.world.quaternion); S.toScreen(v); return { x: v.x, y: v.y }; });
   const size = 720, x = Math.max(0, Math.min(1200 - size, Math.round(c.x - size/2))), y = Math.max(0, Math.min(1200 - size, Math.round(c.y - size/2)));
   await p.screenshot({ path: path.join(here, "og-tower.png"), clip: { x, y, width: size, height: size } });
+  await p.screenshot({ path: path.join(here, "..", "assets", "intro-towers.webp"), type: "webp", quality: 80, clip: { x, y, width: size, height: size } });   // the intro's thumbnail
   console.log("wrote tools/og-tower.png (Norway tower at", Math.round(c.x), Math.round(c.y), ")");
   await p.close(); srv.close();
 }

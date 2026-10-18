@@ -283,9 +283,13 @@ const setPowerMap = on => setLayer(on ? "power" : "none");
    (emissive comes from the instance colour, at most 0.3). No halos, no point lights. */
 const dcMat = new THREE.MeshStandardMaterial({roughness:0.4, metalness:0, roughnessMap: quality.tier === "high" ? noiseTex : null, flatShading: quality.tier === "low"});
 dcMat.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n#ifdef USE_COLOR\n totalEmissiveRadiance += vColor.rgb * 0.3;\n#endif"); };
+let dcStuds = null;   // four studs per data-centre brick, same material and colours (set below, once)
 const dcMesh = (() => {
-  const geo = new THREE.BoxGeometry(1,1,1); geo.translate(0,0.5,0);
+  const geo = chamferBox(0.07);
   const m = new THREE.InstancedMesh(geo, dcMat, DATA.datacentres.length);
+  const studGeoDC = new THREE.CylinderGeometry(1,1,1,12); studGeoDC.translate(0,0.5,0);
+  dcStuds = new THREE.InstancedMesh(studGeoDC, dcMat, DATA.datacentres.length*4); dcStuds.frustumCulled = false;
+  const SM = new THREE.Matrix4(), so = new THREE.Vector3(), ss = new THREE.Vector3(DC_BRICK.w*0.18, DC_BRICK.h*0.45, DC_BRICK.w*0.18), oo = DC_BRICK.w*0.25;
   const M = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(DC_BRICK.w, DC_BRICK.h, DC_BRICK.d), up = new THREE.Vector3(0,1,0), col = new THREE.Color();
   // bricks that would sit inside their country's tower are nudged a step sideways (spread around it) so they stay visible and clickable
   const cent = new THREE.Vector3(), east = new THREE.Vector3(), north = new THREE.Vector3(), nrm = new THREE.Vector3(), off = new THREE.Vector3(), Y = new THREE.Vector3(0,1,0);
@@ -302,9 +306,11 @@ const dcMesh = (() => {
     }
     q.setFromUnitVectors(up, p.clone().normalize());
     M.compose(p, q, s); m.setMatrixAt(i, M); m.setColorAt(i, col.setHex(OPERATOR_COLOR[d.operator]).offsetHSL(0, 0.08, 0.02));
+    for (let j = 0; j < 4; j++){ so.set(j&1 ? oo : -oo, DC_BRICK.h, j&2 ? oo : -oo).applyQuaternion(q).add(p); SM.compose(so, q, ss); dcStuds.setMatrixAt(i*4+j, SM); dcStuds.setColorAt(i*4+j, col); }
     d._pos = p.clone();
   });
   m.instanceMatrix.needsUpdate = true; m.instanceColor.needsUpdate = true; world.add(m);
+  dcStuds.instanceMatrix.needsUpdate = true; dcStuds.instanceColor.needsUpdate = true; world.add(dcStuds);
   return m;
 })();
 
@@ -520,8 +526,8 @@ function targetBricks(t){
 const _dcc = new THREE.Color();
 function setDCFocus(list){
   const keep = list && list.length ? new Set(list) : null;
-  DATA.datacentres.forEach((d, i) => { _dcc.setHex(OPERATOR_COLOR[d.operator]).offsetHSL(0, 0.08, 0.02); if (keep && !keep.has(d)) _dcc.multiplyScalar(0.35); dcMesh.setColorAt(i, _dcc); });
-  dcMesh.instanceColor.needsUpdate = true;
+  DATA.datacentres.forEach((d, i) => { _dcc.setHex(OPERATOR_COLOR[d.operator]).offsetHSL(0, 0.08, 0.02); if (keep && !keep.has(d)) _dcc.multiplyScalar(0.35); dcMesh.setColorAt(i, _dcc); for (let j = 0; j < 4; j++) dcStuds.setColorAt(i*4+j, _dcc); });
+  dcMesh.instanceColor.needsUpdate = true; dcStuds.instanceColor.needsUpdate = true;
 }
 /* city towers: thin towers at a country's main cities, same height scale as country towers */
 const _cup = new THREE.Vector3(0,1,0), _ctmp = new THREE.Vector3(), _Z = new THREE.Matrix4().makeScale(0,0,0);
