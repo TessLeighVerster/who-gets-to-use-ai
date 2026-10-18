@@ -1676,14 +1676,30 @@ function castAt(px, py){
   return best;
 }
 const RING = Array.from({length:8}, (_,i) => [Math.cos(i*Math.PI/4), Math.sin(i*Math.PI/4)]);
+const _sa = new THREE.Vector3(), _sb = new THREE.Vector3();
+function screenDistTo(hit, px, py){   // on-screen distance from the pointer to the hit object's axis (tower) or brick (data centre)
+  if (hit.type === "dc"){ toScreen(_sa.copy(hit.d._pos).applyQuaternion(world.quaternion)); return Math.hypot(_sa.x-px, _sa.y-py); }
+  const t = hit.t, len = Math.min(t.v, t.n)*t.dims.h;
+  _sa.copy(t.pos).applyQuaternion(world.quaternion); _sb.copy(t.pos).addScaledVector(t.normal, len).applyQuaternion(world.quaternion);
+  toScreen(_sa); toScreen(_sb);
+  const vx = _sb.x-_sa.x, vy = _sb.y-_sa.y, l2 = vx*vx+vy*vy, u = l2 > 0 ? clamp(((px-_sa.x)*vx + (py-_sa.y)*vy)/l2, 0, 1) : 0;
+  return Math.hypot(px - (_sa.x + u*vx), py - (_sa.y + u*vy));
+}
 function hitTest(px, py){
   camera.getWorldPosition(_cam);
   const hit = castAt(px, py);
-  if (hit) return hit;
-  // nothing exactly under the pointer: allow a small margin (bigger for fingers) by sampling a ring around it, nearest ring first
+  if (hit) return hit;   // something is drawn exactly under the pointer: that always wins
+  // nothing exactly under the pointer: allow a small margin (bigger for fingers) by sampling a ring around it, nearest ring first.
+  // Several towers can sit inside one ring when the globe is zoomed out, so every sample on a ring is tried and the object whose
+  // drawn axis is closest to the pointer wins, rather than whichever sample happened to be tested first.
   const radii = lastPointerType === "touch" ? [2, 7, 13, 20, 28] : [1.5, 4, 8];
   for (const r of radii){
-    for (const [cx, cy] of RING){ const h = castAt(px + cx*r, py + cy*r); if (h) return h; }
+    let best = null, bestD = Infinity;
+    for (const [cx, cy] of RING){
+      const h = castAt(px + cx*r, py + cy*r); if (!h) continue;
+      const d = screenDistTo(h, px, py); if (d < bestD){ bestD = d; best = h; }
+    }
+    if (best) return best;
   }
   return null;
 }
@@ -1742,15 +1758,17 @@ function endPointer(e){
       const near = now - lastTapT < 450 && Math.hypot(e.clientX-lastTapX, e.clientY-lastTapY) < 40;
       if (lastPointerType === "touch" && near && lastTapHit){ touchUI(); return; }   // second tap of a double tap on a tower: the globe is already flying there, so the spot under the finger is now something else
       if (lastPointerType === "touch" && now - selectedAt < 700){ touchUI(); return; }   // likewise any tap while the globe is still flying to a fresh selection
-      const hit = hitTest(e.clientX, e.clientY);
+      // a finger rolls a few pixels as it lifts; what the person aimed at is where it first landed, so taps are resolved at the touch-down point
+      const hx = lastPointerType === "touch" ? downX : e.clientX, hy = lastPointerType === "touch" ? downY : e.clientY;
+      const hit = hitTest(hx, hy);
       const dbl = lastPointerType === "touch" && near && !lastTapHit;
       lastTapT = now; lastTapX = e.clientX; lastTapY = e.clientY; lastTapHit = !!hit;
       if (hit && lastPointerType === "touch"){ state.hoverHit = hit; tipUntil = now + 1800; showTip(hit); }   // name the tapped tower for a moment
       if (hit && hit.type === "tower" && hit.t.isCity){ const c = hit.t.cityOf; focusCity(c, cityObjects(c).indexOf(hit.t.ref)); }
       else if (hit && hit.type === "tower") select(hit.t.ref);
       else if (hit && hit.type === "dc") selectDC(hit.d);
-      else if (eggs.hit(e.clientX, e.clientY)) {}
-      else if (dbl){ zoomAt(0.6, e.clientX, e.clientY); lastTapT = 0; }   // double tap on empty globe: zoom in there
+      else if (eggs.hit(hx, hy)) {}
+      else if (dbl){ zoomAt(0.6, hx, hy); lastTapT = 0; }   // double tap on empty globe: zoom in there
       else {
         if (state.selected || state.selectedDC) select(null);
         if (isNarrow() && !$("#panel").classList.contains("strip") && !$("#panel").classList.contains("kb")){ $("#panel").classList.add("strip"); syncSheet(); }   // phones: tapping the globe tucks the sheet away
