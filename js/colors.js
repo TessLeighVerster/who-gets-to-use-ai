@@ -3,12 +3,12 @@
    (--c-anthropic … --c-local, --o-aws … --o-other); CSS_TOKENS mirrors the rest of its :root block. */
 export const PROVIDERS = ["anthropic","openai","google","meta","mistral","deepseek","local"];
 export const PROVIDER_LABEL = {anthropic:"Anthropic",openai:"OpenAI",google:"Google",meta:"Meta",mistral:"Mistral",deepseek:"DeepSeek",local:"Local / other"};
-/* ABS-plastic palette: warm off-white instead of pure white, hues slightly desaturated and darkened, a warm mid-grey for
-   Local / other. Checked side by side (legend vs tower) and under a deuteranopia simulation: tools/palette-check.mjs. */
-export const PROVIDER_COLOR = {anthropic:0xd67a5a,openai:0xf0ece3,google:0x4a95dc,meta:0x7a60c6,mistral:0xee7430,deepseek:0x3cc4b2,local:0xa8a299};
+/* Painted-block palette (after the stacked painted-wood reference): chalky, lighter tones, warm cream instead of white, a warm
+   mid-grey for Local / other; each hue stays distinct from its neighbours. Checked side by side (legend vs tower) and under a deuteranopia simulation: tools/palette-check.mjs. */
+export const PROVIDER_COLOR = {anthropic:0xe08a6a,openai:0xefe9d6,google:0x5b8fd6,meta:0x8e66b8,mistral:0xf08a4a,deepseek:0x5cc4ad,local:0xa09a8e};
 export const OPERATORS = ["aws","microsoft","google","meta","oracle","other"];
 export const OPERATOR_LABEL = {aws:"AWS",microsoft:"Microsoft",google:"Google",meta:"Meta",oracle:"Oracle",other:"Other"};
-export const OPERATOR_COLOR = {aws:0xe6a53e,microsoft:0x86b43a,google:0x4a95dc,meta:0x7a60c6,oracle:0xde564d,other:0xd880e6};
+export const OPERATOR_COLOR = {aws:0xe6b04a,microsoft:0x8fb85a,google:0x5b8fd6,meta:0x8e66b8,oracle:0xe0655a,other:0xe08cd8};
 export const CONTINENT_COLOR = {"North America":"#f4c76b","Europe":"#e8a862","Asia":"#c7a2ff","Oceania":"#7fd6c2","South America":"#8fb8ff","Africa":"#f08a8a"};
 
 /* Mirror of the design tokens declared on :root in styles.css. styles.css is the source of truth; this copy is for

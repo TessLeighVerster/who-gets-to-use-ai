@@ -355,7 +355,7 @@ function chamferBox(c){
 const brickGeo = chamferBox(0.07);
 const studGeo = new THREE.CylinderGeometry(1,1,1,12); studGeo.translate(0,0.5,0);
 /* glossy ABS: roughness 0.45, no metalness, faint roughness variation from the shared noise texture (high tier) */
-const brickMat = new THREE.MeshStandardMaterial({roughness:0.45, metalness:0, roughnessMap: quality.tier === "high" ? noiseTex : null, flatShading: quality.tier === "low"});
+const brickMat = new THREE.MeshStandardMaterial({roughness:0.52, metalness:0, roughnessMap: quality.tier === "high" ? noiseTex : null, flatShading: quality.tier === "low"});
 const bricks = new THREE.InstancedMesh(brickGeo, brickMat, towers.total);
 const studs = new THREE.InstancedMesh(studGeo, brickMat, towers.total*4);
 bricks.frustumCulled = studs.frustumCulled = false;
