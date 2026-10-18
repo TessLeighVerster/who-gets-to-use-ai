@@ -25,7 +25,8 @@ Static, no-build exhibit deployed by GitHub Pages from `main` (custom domain in 
 - Panel: `<aside id="panel">` with tabs Usage / Spend / Access / Key (Key is phone-only) and the card view `#v-card`. `js/panel.js` fills the lists, renders `cardHTML(ref)` and the data-centre card, handles search, pins, the bottom-sheet drag on phones (`.strip` = tucked away, `syncSheet()` re-centres the globe) and the live counters (`tickCounters`).
 
 ## 5. Head metadata
-- `index.html` lines 1–13: charset, viewport (no user zoom), mobile-web-app metas, `<title>`, favicons (`favicon.svg`, `favicon-32.png`, `apple-touch-icon.png`), `theme-color`. No description, canonical, Open Graph or Twitter tags yet.
+- `index.html` head: charset, viewport (no user zoom), mobile-web-app metas, `<title>` "Who gets to build with AI?", description (<155 chars), canonical, `og:*` and `twitter:*` tags pointing at `https://whogetstobuildwithai.com/og.png` (1200×630), favicons, `site.webmanifest`, `theme-color`.
+- `og.png` is rendered from `tools/og-template.html` by `tools/render-og.mjs` (plain HTML + inline SVG, no WebGL); the hero stat is the `HERO_STAT` constant in the template (placeholder, marked TODO).
 
 ## 6. Routing and URL state
 - None. The only URL input is `?nointro` (read in `js/main.js`). Selection, tab and layer are in-memory (`state` in `js/state.js`); `keyCollapsed` is the only persisted preference (localStorage).
