@@ -1,0 +1,3 @@
+# Cable.co.uk's workbook is downloaded by tools/fetch-data.mjs; its site terms do not allow redistribution, so only the per-country extract is committed
+data/raw/cable/*.xlsx
+.DS_Store

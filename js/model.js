@@ -5,6 +5,18 @@ import { datacentres } from "../data/datacentres.js";
 import { continents } from "../data/continents.js";
 import { PROVIDERS } from "./colors.js";
 import { accessScore } from "./accessGap.js";
+/* Provenance adapter. data/countries.js stores every numeric field as { value, source, year, estimated, … } (source is a key
+   into data/sources.js). The app reads plain numbers, so each record is normalised once here: the bare value goes back on the
+   field and the rest of the object is kept under c.provenance[field]. A field stored as a bare value gets no provenance entry. */
+export function normalise(c){
+  c.provenance = {};
+  for (const [k, v] of Object.entries(c)){
+    if (v && typeof v === "object" && !Array.isArray(v) && "value" in v && "estimated" in v){ const { value, ...p } = v; c[k] = value; c.provenance[k] = p; }
+  }
+  return c;
+}
+countries.forEach(normalise);
+export const isEstimated = (c, field) => !!(c.provenance && c.provenance[field] && c.provenance[field].estimated);
 export const DATA = { countries, datacentres, continents };
 
 /* Global rate for the "prompts since you arrived" ticker (prompts per second, all providers). */

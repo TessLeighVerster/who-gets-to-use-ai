@@ -14,8 +14,10 @@ Static, no-build exhibit deployed by GitHub Pages from `main` (custom domain in 
 - Picking: `castAt(px, py)` ray-casts in the world-local frame against every drawn brick (globe occludes); `hitTest` adds a tolerance ring (nearest-wins); `endPointer` resolves taps at the touch-down point and calls `select` / `selectDC` / `focusCity`.
 
 ## 3. Data
-- `data/countries.js` (111 records; field-by-field JSDoc at the top), `data/datacentres.js` (49), `data/continents.js` (6). All figures are illustrative estimates modelled from public sources; there is no sourced-vs-estimated distinction yet.
-- `js/model.js` joins them into `DATA` and derives `dcCount`, `access` (via `js/accessGap.js`), `servedBy` (in scene.js) and the continent aggregates `CONT`.
+- `data/countries.js` (62 records; field-by-field JSDoc at the top), `data/datacentres.js` (49, each with `sourceUrl` or `estimated:true`), `data/continents.js` (6), `data/sources.js` (the source table).
+- Every numeric country field is a provenance object `{ value, source, year, estimated }`. `normalise()` in `js/model.js` unwraps them at load, so the app reads plain numbers and finds the provenance under `c.provenance[field]`; `isEstimated(c, field)` is the helper. Sourced: population, GDP per capita, internet penetration, electricity access (World Bank), data cost per GB (Cable.co.uk 2023), usage index (Anthropic Economic Index, a Claude-usage proxy, 56 of 62 countries). Derived: subscriptionShareOfIncome = (20×12)/gdpPerCapita×100. Estimated wholesale: activeUsers, providerShare, growthCurve, cities, capabilities, barriers, facts.
+- Regenerate with `node tools/fetch-data.mjs` (or `--offline` to reuse `data/raw/`). Raw downloads and their terms: `data/raw/LICENSES.md`. The Cable.co.uk workbook is gitignored.
+- `js/model.js` joins the data modules into `DATA` and derives `dcCount`, `access` (via `js/accessGap.js`), `servedBy` (in scene.js) and the continent aggregates `CONT`.
 - `js/colors.js`: `PROVIDER_COLOR`, `OPERATOR_COLOR`, `CONTINENT_COLOR` and `CSS_TOKENS`, a mirror of the `:root` tokens in `styles.css` (styles.css is the source of truth).
 
 ## 4. Intro overlay and side panel
