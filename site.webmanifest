@@ -4,8 +4,8 @@
   "description": "A Lego globe of AI access: every tower is a country, its height how much people there use AI, its colours whose models they use.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#07080c",
-  "theme_color": "#07080c",
+  "background_color": "#14120f",
+  "theme_color": "#14120f",
   "icons": [
     { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" },
     { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },

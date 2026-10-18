@@ -40,9 +40,10 @@ intro.onAction(runPending);
    ===================================================================================== */
 await threeReady;   // started by js/intro.js as soon as the overlay was wired
 const [S, P] = await Promise.all([import("./scene.js"), import("./panel.js")]);
-const { renderer, scene, camera, towers, targetBricks, animateTower, stepTowers, stepFocus, eggs, applyView, stepHover, ring, dcMesh, stepArcs, focus, updateCompass, resize, isNarrow } = S;
+const { renderer, scene, camera, towers, targetBricks, animateTower, stepTowers, stepFocus, eggs, applyView, stepHover, ring, stepArcs, updateCompass, resize, isNarrow } = S;
 const { select, showTab, syncSheet, searchEl, tickCounters } = P;
 app = { select, showTab, searchEl, syncSheet, isNarrow };
+if (new URLSearchParams(location.search).has("debug")) window.__exhibit = { scene: S, panel: P, state, view, DATA };   // test hook for tools/ (perf profile, view screenshots)
 /* deep links: ?layer= and ?tab= apply as soon as the scene is ready; ?country= opens that card (and skipped the intro) */
 function applyUrlState(){
   const u = readUrlState();
@@ -55,10 +56,13 @@ function applyUrlState(){
 /* =====================================================================================
    FRAME LOOP
    ===================================================================================== */
-let last = performance.now(), ready = false;
+let last = performance.now(), ready = false, fpsN = 0, fpsAcc = 0;
+const FLY_EASE = 2.6;
 function frame(now){
   requestAnimationFrame(frame);
   const dt = Math.min(0.05, (now-last)/1000); last = now;
+  // quality tier: if the first 60 frames average under 50 fps, drop to the low tier (unless ?quality= forced one)
+  if (fpsN < 60){ fpsAcc += (now - (frame.prev || now)); frame.prev = now; if (++fpsN === 60 && fpsAcc/59 > 1000/50 && S.quality.tier === "high" && !S.quality.forced) S.setQuality("low"); }
   // build-up on first frames
   if (!state.built){ state.built = true; towers.forEach((t,i) => { const tgt = targetBricks(t); if (tgt>0) animateTower(t, tgt, 1700, 250 + (i%17)*45 + (i*7%5)*30, now); }); setTimeout(()=>$("#hint").classList.add("show"), 2600); }
   stepTowers(now); stepFocus(dt); eggs.step(now, dt);
@@ -74,8 +78,8 @@ function frame(now){
     } else if (idle && !view.flying && !reduceMotion){ view.tYaw += 0.06*dt; }
   }
   const k = view.flying ? 1-Math.pow(0.001, dt) : 1-Math.pow(0.0005, dt);
-  view.yaw = lerp(view.yaw, view.tYaw, view.flying ? Math.min(1, dt*3.2) : k);
-  view.pitch = lerp(view.pitch, view.tPitch, view.flying ? Math.min(1, dt*3.2) : k);
+  view.yaw = lerp(view.yaw, view.tYaw, view.flying ? Math.min(1, dt*FLY_EASE) : k);   // fly-to: a touch slower and more decelerated, reaching for a model rather than a drone cut
+  view.pitch = lerp(view.pitch, view.tPitch, view.flying ? Math.min(1, dt*FLY_EASE) : k);
   view.dist = lerp(view.dist, view.tDist, Math.min(1, dt*4));
   view.panX = lerp(view.panX, view.tPanX, Math.min(1, dt*6)); view.panY = lerp(view.panY, view.tPanY, Math.min(1, dt*6));
   if (view.flying && Math.abs(view.yaw-view.tYaw) < 0.002 && Math.abs(view.pitch-view.tPitch) < 0.002) view.flying = false;
@@ -85,9 +89,7 @@ function frame(now){
   stepHover(now);
   // ring pulse, halos, counters
   if (ring.visible){ const p = (now - ring.userData.t0)/1000; const s = ring.userData.base; const pulse = s*(1+0.12*Math.sin(p*3)); ring.scale.set(pulse, pulse, pulse); ring.material.opacity = 0.65+0.3*Math.sin(p*3); }
-  dcMesh.userData.halo.material.uniforms.t.value = now/1000;
   stepArcs(now);
-  { const b = (0.8 + 0.35*Math.sin(now/1000*2.2))*(focus.dcMul||1); dcMesh.material.color.setRGB(b,b,b); }
   tickCounters(now); updateCompass();
   renderer.render(scene, camera);
   if (!ready){ ready = true; document.body.classList.add("ready"); setTimeout(() => { const ph = $("#placeholder"); if (ph) ph.remove(); }, 700); intro.startTimer(); applyUrlState(); runPending(); }   // the real scene is on screen: drop the placeholder, run what the intro queued

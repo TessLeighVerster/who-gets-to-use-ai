@@ -126,31 +126,51 @@ const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 50);
 const world = new THREE.Group();   // everything that rotates
 scene.add(world);
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(-2.5, 3, 4); scene.add(key);
-const fill = new THREE.DirectionalLight(0x9db4ff, 0.6); fill.position.set(3, -1, 2); scene.add(fill);
+/* lighting: one warm key light and one cool, low hemisphere fill. No shadows, no point lights. */
+const key = new THREE.DirectionalLight(0xfff1dc, 1.75); key.position.set(-2.5, 3, 4); scene.add(key);
+const hemi = new THREE.HemisphereLight(0x8ea2c4, 0x2a2521, 0.6); scene.add(hemi);
 
-/* globe */
-const globe = new THREE.Mesh(new THREE.SphereGeometry(R, 96, 64), new THREE.MeshStandardMaterial({color:0x0e1322, roughness:0.92, metalness:0.05}));
+/* quality tier: "low" on phones (small viewport at 2x+), on <=4-core devices, or when the first 60 frames average under
+   50 fps (js/main.js calls setQuality); "high" otherwise. ?quality=low|high overrides. Low = high minus the textures. */
+const QUALITY_PARAM = new URLSearchParams(location.search).get("quality");
+const phoneLike = window.innerWidth*window.innerHeight < 520000 && (window.devicePixelRatio||1) >= 2;
+const quality = { tier: QUALITY_PARAM === "low" || QUALITY_PARAM === "high" ? QUALITY_PARAM : (phoneLike || (navigator.hardwareConcurrency||8) <= 4 ? "low" : "high"), forced: QUALITY_PARAM === "low" || QUALITY_PARAM === "high" };
+
+/* the few shared textures, all generated on a canvas (no network): a 256² grey noise for roughness variation on the bricks,
+   a 512² greyscale stud pattern for the baseplate (roughness + faint bump), a 64² radial gradient for contact discs */
+function canvasTexture(size, draw, repeat){
+  const cv = document.createElement("canvas"); cv.width = cv.height = size; draw(cv.getContext("2d"), size);
+  const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; if (repeat) t.repeat.set(repeat[0], repeat[1]); t.anisotropy = 2; return t;
+}
+const noiseTex = canvasTexture(256, (g, s) => { const img = g.createImageData(s, s), d = img.data; let seed = 11; const rnd = () => (seed = (seed*48271)%2147483647)/2147483647;
+  for (let i = 0; i < s*s; i++){ const v = 150 + Math.floor(rnd()*70); d[i*4] = d[i*4+1] = d[i*4+2] = v; d[i*4+3] = 255; } g.putImageData(img, 0, 0); }, [6, 6]);
+const studTex = canvasTexture(512, (g, s) => { g.fillStyle = "#b4b4b4"; g.fillRect(0, 0, s, s); const n = 8, cell = s/n;   // 8×8 studs per tile
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++){ const cx = (x+0.5)*cell, cy = (y+0.5)*cell, r = cell*0.3;
+    const grd = g.createRadialGradient(cx - r*0.3, cy - r*0.3, r*0.1, cx, cy, r); grd.addColorStop(0, "#d8d8d8"); grd.addColorStop(0.75, "#c4c4c4"); grd.addColorStop(1, "#8c8c8c");
+    g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, r, 0, Math.PI*2); g.fill(); } }, [48, 24]);
+const discTex = canvasTexture(64, (g, s) => { const grd = g.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2); grd.addColorStop(0, "rgba(255,255,255,1)"); grd.addColorStop(0.55, "rgba(255,255,255,0.55)"); grd.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = grd; g.fillRect(0, 0, s, s); });
+
+/* baseplate: a dark warm grey-green plate with a low-contrast stud pattern (texture, not geometry) */
+const plateMat = new THREE.MeshStandardMaterial({color:0x1e2522, roughness:0.9, metalness:0, roughnessMap: quality.tier === "high" ? studTex : null, bumpMap: quality.tier === "high" ? studTex : null, bumpScale:0.0022});
+const globe = new THREE.Mesh(new THREE.SphereGeometry(R, 96, 64), plateMat);
 world.add(globe);
-/* rim glow on the sphere itself */
+/* faint warm rim so the plate's edge separates from the near-black background */
 const rim = new THREE.Mesh(new THREE.SphereGeometry(R*1.001, 96, 64), new THREE.ShaderMaterial({
-  transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
-  uniforms:{ c:{value:new THREE.Color(0x4f7ee8)} },
+  transparent:true, depthWrite:false,
+  uniforms:{ c:{value:new THREE.Color(0xd9cdb8)} },
   vertexShader:`varying vec3 vN; varying vec3 vV; void main(){ vN=normalize(normalMatrix*normal); vec4 mv=modelViewMatrix*vec4(position,1.0); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }`,
-  fragmentShader:`uniform vec3 c; varying vec3 vN; varying vec3 vV; void main(){ float f=pow(1.0-max(dot(vN,vV),0.0),3.2); gl_FragColor=vec4(c*f*1.3,f); }`
+  fragmentShader:`uniform vec3 c; varying vec3 vN; varying vec3 vV; void main(){ float f=pow(1.0-max(dot(vN,vV),0.0),4.0); gl_FragColor=vec4(c*f*0.35,f*0.35); }`
 }));
 world.add(rim);
-/* outer atmosphere */
-const atmo = new THREE.Mesh(new THREE.SphereGeometry(R*1.16, 96, 64), new THREE.ShaderMaterial({
-  side:THREE.BackSide, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
-  uniforms:{ c:{value:new THREE.Color(0x5b8cff)} },
-  vertexShader:`varying vec3 vN; varying vec3 vV; void main(){ vN=normalize(normalMatrix*normal); vec4 mv=modelViewMatrix*vec4(position,1.0); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }`,
-  fragmentShader:`uniform vec3 c; varying vec3 vN; varying vec3 vV; void main(){ float d=dot(vN,vV); float f=pow(smoothstep(-0.02,0.8,d),2.0); gl_FragColor=vec4(c*f*0.9,f*0.9); }`
-}));
-scene.add(atmo);
+function setQuality(tier){
+  quality.tier = tier;
+  const hi = tier === "high";
+  plateMat.roughnessMap = hi ? studTex : null; plateMat.bumpMap = hi ? studTex : null; plateMat.needsUpdate = true;
+  brickMat.roughnessMap = hi ? noiseTex : null; brickMat.flatShading = !hi; brickMat.needsUpdate = true;
+  dcMat.roughnessMap = hi ? noiseTex : null; dcMat.flatShading = !hi; dcMat.needsUpdate = true;
+}
 
-/* round sprite texture (canvas-generated; no network) */
+/* round sprite texture for the arc packets (canvas-generated; no network) */
 function discTexture(size, soft){
   const cv = document.createElement("canvas"); cv.width = cv.height = size;
   const g = cv.getContext("2d"); const grd = g.createRadialGradient(size/2,size/2,0,size/2,size/2,size/2);
@@ -158,16 +178,7 @@ function discTexture(size, soft){
   g.fillStyle = grd; g.fillRect(0,0,size,size);
   const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
-const dotTex = discTexture(64,false), glowTex = discTexture(128,true);
-
-/* starfield */
-{
-  const N = 1800, pos = new Float32Array(N*3), tmp = new THREE.Vector3();
-  let seed = 7; const rnd = () => (seed = (seed*16807)%2147483647)/2147483647;
-  for (let i=0;i<N;i++){ tmp.set(rnd()*2-1, rnd()*2-1, rnd()*2-1).normalize().multiplyScalar(18+rnd()*6); pos.set([tmp.x,tmp.y,tmp.z], i*3); }
-  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos,3));
-  scene.add(new THREE.Points(g, new THREE.PointsMaterial({color:0xaab4d4, size:0.06, sizeAttenuation:true, map:dotTex, transparent:true, opacity:0.7, depthWrite:false})));
-}
+const glowTex = discTexture(128,true);
 
 /* data layers for the land dots. Bands are tested in order; the on-screen key is generated from the same table. */
 const LAYERS = {
@@ -192,7 +203,9 @@ const LAYERS = {
             {test:c=>c.dataCostPerGB*c.subscriptionShareOfIncome/20<1.2, hex:0xff5a1f, label:"0.6–1.2%",   examples:"Senegal, Tanzania, Ghana, Uganda"},
             {test:c=>true,                                               hex:0xe91e8c, label:"over 1.2%",  examples:"DR Congo, Ethiopia, Venezuela"} ] }
 };
-/* land dot-matrix: Fibonacci sphere sampled against the mask, capped at 12,000 points */
+/* land: the country/continent geography as small flat discs lying on the plate. Positions: a Fibonacci sphere sampled
+   against the mask, capped at 12,000 points. One InstancedMesh (one draw call); colour skins per data layer are applied
+   with setColorAt only when a layer is switched, never per frame. */
 let landDots;
 {
   const N = 40000, CAP = 12000, tmp = new THREE.Vector3(), hits = [];
@@ -205,31 +218,36 @@ let landDots;
   }
   const count = hits.length/3, keep = Math.min(1, CAP/count), pos = new Float32Array(Math.min(count,CAP)*3);
   let seed = 3, n = 0; const rnd = () => (seed = (seed*48271)%2147483647)/2147483647;
-  for (let i=0;i<count && n<CAP;i++){ if (rnd() <= keep){ pos[n*3]=hits[i*3]*R*1.003; pos[n*3+1]=hits[i*3+1]*R*1.003; pos[n*3+2]=hits[i*3+2]*R*1.003; n++; } }
-  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos.subarray(0,n*3),3));
-  // colour skins for the land dots: plain, plus one per data layer. Each dot takes the value of the nearest listed country.
+  for (let i=0;i<count && n<CAP;i++){ if (rnd() <= keep){ pos[n*3]=hits[i*3]; pos[n*3+1]=hits[i*3+1]; pos[n*3+2]=hits[i*3+2]; n++; } }
+  // each dot takes the value of the nearest listed country (for the Power / Data cost skins)
   const cents = DATA.countries.map(c => latLonToVec(c.lat, c.lon, 1, new THREE.Vector3()));
   const owner = new Int16Array(n);
   for (let i=0;i<n;i++){
-    const x = pos[i*3]/(R*1.003), y = pos[i*3+1]/(R*1.003), z = pos[i*3+2]/(R*1.003);
+    const x = pos[i*3], y = pos[i*3+1], z = pos[i*3+2];
     let best = -1, bd = -2;
     for (let k=0;k<cents.length;k++){ const d = x*cents[k].x + y*cents[k].y + z*cents[k].z; if (d > bd){ bd = d; best = k; } }
     owner[i] = bd < Math.cos(24*deg) ? -1 : best;                              // far from any listed country: no data
   }
   const skins = {}, cc = new THREE.Color();
-  const skin = (name, fn) => { const arr = new Float32Array(n*3); for (let i=0;i<n;i++){ cc.setHex(owner[i] < 0 ? (name === "plain" ? 0x93a3c9 : 0x2a2f3d) : fn(DATA.countries[owner[i]])); arr[i*3]=cc.r; arr[i*3+1]=cc.g; arr[i*3+2]=cc.b; } skins[name] = new THREE.BufferAttribute(arr,3); };
-  skin("plain", () => 0x93a3c9);
+  const skin = (name, fn) => { const arr = new Float32Array(n*3); for (let i=0;i<n;i++){ cc.setHex(owner[i] < 0 ? (name === "plain" ? 0x3b423d : 0x2a2f2b) : fn(DATA.countries[owner[i]])); arr[i*3]=cc.r; arr[i*3+1]=cc.g; arr[i*3+2]=cc.b; } skins[name] = arr; };
+  skin("plain", () => 0x3b423d);                                                 // faint: the geography reads without competing with the towers
   Object.keys(LAYERS).forEach(k => skin(k, c => LAYERS[k].bands.find(b => b.test(c)).hex));
-  g.setAttribute("color", skins.plain);
-  landDots = new THREE.Points(g, new THREE.PointsMaterial({vertexColors:true, size:0.014, sizeAttenuation:true, map:dotTex, alphaTest:0.25, transparent:true, opacity:1}));
-  landDots.userData = { skins };
+  const discGeo = new THREE.CircleGeometry(1, 6); discGeo.rotateX(-Math.PI/2);   // flat hexagonal discs on the plate (6 triangles each: 12,000 dots = 72k triangles)
+  landDots = new THREE.InstancedMesh(discGeo, new THREE.MeshBasicMaterial({color:0xffffff}), n);
+  landDots.frustumCulled = false;
+  const M = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0,1,0), s = new THREE.Vector3(), p = new THREE.Vector3();
+  for (let i=0;i<n;i++){ p.set(pos[i*3], pos[i*3+1], pos[i*3+2]); q.setFromUnitVectors(up, tmp.copy(p).normalize()); s.setScalar(0.0062*R); M.compose(p.multiplyScalar(R*1.0015), q, s); landDots.setMatrixAt(i, M); }
+  landDots.instanceMatrix.needsUpdate = true;
+  const applySkin = name => { const arr = skins[name] || skins.plain; for (let i=0;i<n;i++) landDots.setColorAt(i, cc.setRGB(arr[i*3], arr[i*3+1], arr[i*3+2])); landDots.instanceColor.needsUpdate = true; };
+  applySkin("plain");
+  landDots.userData = { skins, applySkin };
   world.add(landDots);
 }
+
 function setLayer(name, quiet){
   if (!LAYERS[name]) name = "none";
   state.layer = name; writeUrlState({ layer: name });
-  landDots.geometry.setAttribute("color", name === "none" ? landDots.userData.skins.plain : landDots.userData.skins[name]); landDots.geometry.attributes.color.needsUpdate = true;
-  landDots.material.size = name === "none" ? 0.014 : 0.017;
+  landDots.userData.applySkin(name === "none" ? "plain" : name);
   const group = name === "dataShare" ? "data" : name;
   document.querySelectorAll("#layerSeg button").forEach(b => b.classList.toggle("on", b.dataset.layer === group));
   const key = $("#powerKey"); key.classList.toggle("show", name !== "none");
@@ -248,10 +266,13 @@ function setLayer(name, quiet){
 }
 const setPowerMap = on => setLayer(on ? "power" : "none");
 
-/* data centres: instanced small bricks + pulsing halos (shader driven, no per-frame CPU work) */
+/* data centres: instanced small bricks in a slightly more saturated, slightly emissive version of the operator colour
+   (emissive comes from the instance colour, at most 0.3). No halos, no point lights. */
+const dcMat = new THREE.MeshStandardMaterial({roughness:0.4, metalness:0, roughnessMap: quality.tier === "high" ? noiseTex : null, flatShading: quality.tier === "low"});
+dcMat.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n#ifdef USE_COLOR\n totalEmissiveRadiance += vColor.rgb * 0.3;\n#endif"); };
 const dcMesh = (() => {
   const geo = new THREE.BoxGeometry(1,1,1); geo.translate(0,0.5,0);
-  const m = new THREE.InstancedMesh(geo, new THREE.MeshBasicMaterial({color:0xffffff}), DATA.datacentres.length);
+  const m = new THREE.InstancedMesh(geo, dcMat, DATA.datacentres.length);
   const M = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(DC_BRICK.w, DC_BRICK.h, DC_BRICK.d), up = new THREE.Vector3(0,1,0), col = new THREE.Color();
   // bricks that would sit inside their country's tower are nudged a step sideways (spread around it) so they stay visible and clickable
   const cent = new THREE.Vector3(), east = new THREE.Vector3(), north = new THREE.Vector3(), nrm = new THREE.Vector3(), off = new THREE.Vector3(), Y = new THREE.Vector3(0,1,0);
@@ -267,23 +288,11 @@ const dcMesh = (() => {
       p.add(off).normalize().multiplyScalar(R);
     }
     q.setFromUnitVectors(up, p.clone().normalize());
-    M.compose(p, q, s); m.setMatrixAt(i, M); m.setColorAt(i, col.setHex(OPERATOR_COLOR[d.operator]));
+    M.compose(p, q, s); m.setMatrixAt(i, M); m.setColorAt(i, col.setHex(OPERATOR_COLOR[d.operator]).offsetHSL(0, 0.08, 0.02));
     d._pos = p.clone();
   });
   m.instanceMatrix.needsUpdate = true; m.instanceColor.needsUpdate = true; world.add(m);
-  // halos
-  const N = DATA.datacentres.length, pos = new Float32Array(N*3), c = new Float32Array(N*3), ph = new Float32Array(N);
-  DATA.datacentres.forEach((d,i) => { const v = d._pos.clone().multiplyScalar(1.004); pos.set([v.x,v.y,v.z], i*3); col.setHex(OPERATOR_COLOR[d.operator]); c.set([col.r,col.g,col.b], i*3); ph[i] = (i*2.399)%6.283; });
-  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos,3)); g.setAttribute("color", new THREE.BufferAttribute(c,3)); g.setAttribute("phase", new THREE.BufferAttribute(ph,1));
-  const halo = new THREE.Points(g, new THREE.ShaderMaterial({
-    transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
-    uniforms:{ t:{value:0}, map:{value:glowTex}, scale:{value:600} },
-    vertexShader:`attribute float phase; attribute vec3 color; uniform float t; uniform float scale; varying vec3 vC; varying float vA;
-      void main(){ float pulse = 0.55+0.45*sin(t*2.2+phase); vC=color; vA=0.35+0.45*pulse; vec4 mv=modelViewMatrix*vec4(position,1.0);
-      gl_PointSize = (0.05+0.03*pulse)*scale/(-mv.z); gl_Position=projectionMatrix*mv; }`,
-    fragmentShader:`uniform sampler2D map; varying vec3 vC; varying float vA; void main(){ vec4 s=texture2D(map,gl_PointCoord); gl_FragColor=vec4(vC*s.a*vA*1.4,s.a*vA); }`
-  }));
-  world.add(halo); m.userData.halo = halo; return m;
+  return m;
 })();
 
 /* =====================================================================================
@@ -310,44 +319,105 @@ const towers = [], cityTowers = [];
     const dims = isContinent ? CONT_BRICK : BRICK, o = dims.w*0.25;
     const studOffsets = [[-o,-o],[o,-o],[-o,o],[o,o]].map(([x,z]) => tmp.set(x,0,z).applyQuaternion(quat).clone());
     const t = { ref, isContinent, n, pos, normal, quat, dims, studOffsets, colors: brickColors(ref, n), brickStart: brickCursor, v:0, from:0, to:0, t0:-1, dur:1, hover:false };
-    brickCursor += n; towers.push(t); ref._tower = t; return t;
+    t.idx = towers.length; brickCursor += n; towers.push(t); ref._tower = t; return t;
   };
   DATA.countries.forEach(c => make(c,false));
   CONTINENTS.forEach(k => make(CONT[k], true));
   // reusable slots for city towers (shown inside a selected country)
   for (let i=0;i<CITY_SLOTS;i++){
     const t = { ref:null, isCity:true, cityOf:null, isContinent:false, n:0, pos:new THREE.Vector3(0,1,0), normal:new THREE.Vector3(0,1,0), quat:new THREE.Quaternion(), dims:CITY_BRICK, studOffsets:[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()], colors:[], brickStart:brickCursor, v:0, from:0, to:0, t0:-1, dur:1, hover:false, slot:i };
-    brickCursor += CITY_MAX_BRICKS; towers.push(t); cityTowers.push(t);
+    t.idx = towers.length; brickCursor += CITY_MAX_BRICKS; towers.push(t); cityTowers.push(t);
   }
   towers.total = brickCursor;
 }
-const brickGeo = new THREE.BoxGeometry(1,1,1); brickGeo.translate(0,0.5,0);
-const studGeo = new THREE.CylinderGeometry(1,1,1,14); studGeo.translate(0,0.5,0);
-const brickMat = new THREE.MeshStandardMaterial({roughness:0.5, metalness:0.05});
+/* One 2×2 brick = one instance. Bricks per index point: a country at usage index 100 stacks MAX_BRICKS bricks, so each
+   brick stands for 100/MAX_BRICKS index points; the count is Math.round(usageIndex/100*MAX_BRICKS), min 1 when usage > 0. */
+const BRICKS_PER_INDEX_POINT = MAX_BRICKS/100;
+/* chamfered unit box (x,z in [-0.5,0.5], y in [0,1]): 6 faces, 12 edge bevels, 8 corner triangles = 44 triangles, flat normals */
+function chamferBox(c){
+  const h = 0.5, e = h - c, pos = [], nor = [];
+  const polys = [];   // [outwardNormal, [verts]]
+  for (const ax of [0,1,2]) for (const sg of [-1,1]){
+    const n = [0,0,0]; n[ax] = sg; const vs = [];
+    for (const u of [-e,e]) for (const v of [-e,e]){ const p = [0,0,0]; p[ax] = sg*h; p[(ax+1)%3] = u; p[(ax+2)%3] = v; vs.push(p); }
+    polys.push([n, vs]);
+  }
+  for (let a = 0; a < 3; a++) for (let b = a+1; b < 3; b++){ const f = 3-a-b; for (const sa of [-1,1]) for (const sb of [-1,1]){
+    const n = [0,0,0]; n[a] = sa; n[b] = sb; const vs = [];
+    for (const [pa, pb] of [[h, e],[e, h]]) for (const t of [-e, e]){ const p = [0,0,0]; p[a] = sa*pa; p[b] = sb*pb; p[f] = t; vs.push(p); }
+    polys.push([n, vs]);
+  } }
+  for (const sx of [-1,1]) for (const sy of [-1,1]) for (const sz of [-1,1]) polys.push([[sx,sy,sz], [[sx*h, sy*e, sz*e],[sx*e, sy*h, sz*e],[sx*e, sy*e, sz*h]]]);
+  const N = new THREE.Vector3(), U = new THREE.Vector3(), V = new THREE.Vector3(), C = new THREE.Vector3(), T = new THREE.Vector3();
+  for (const [nn, vs] of polys){
+    N.set(nn[0], nn[1], nn[2]).normalize();
+    C.set(0,0,0); vs.forEach(v => C.add(T.set(v[0], v[1], v[2]))); C.divideScalar(vs.length);
+    U.set(1,0,0); if (Math.abs(N.dot(U)) > 0.9) U.set(0,0,1); U.cross(N).normalize(); V.crossVectors(N, U);
+    const ordered = vs.map(v => { T.set(v[0], v[1], v[2]).sub(C); return { v, a: Math.atan2(T.dot(V), T.dot(U)) }; }).sort((p, q) => p.a - q.a).map(o => o.v);   // counter-clockwise seen from outside
+    for (let i = 1; i < ordered.length-1; i++) for (const v of [ordered[0], ordered[i], ordered[i+1]]){ pos.push(v[0], v[1]+h, v[2]); nor.push(N.x, N.y, N.z); }
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute(nor, 3));
+  const uv = new Float32Array(pos.length/3*2); for (let i = 0; i < pos.length/3; i++){ uv[i*2] = pos[i*3]+0.5; uv[i*2+1] = pos[i*3+1]; } g.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+  return g;
+}
+const brickGeo = chamferBox(0.07);
+const studGeo = new THREE.CylinderGeometry(1,1,1,12); studGeo.translate(0,0.5,0);
+/* glossy ABS: roughness 0.45, no metalness, faint roughness variation from the shared noise texture (high tier) */
+const brickMat = new THREE.MeshStandardMaterial({roughness:0.45, metalness:0, roughnessMap: quality.tier === "high" ? noiseTex : null, flatShading: quality.tier === "low"});
 const bricks = new THREE.InstancedMesh(brickGeo, brickMat, towers.total);
 const studs = new THREE.InstancedMesh(studGeo, brickMat, towers.total*4);
 bricks.frustumCulled = studs.frustumCulled = false;
 world.add(bricks, studs);
+/* contact discs: a soft dark disc under every tower stands in for a contact shadow (one transparent InstancedMesh, depthWrite off) */
+const CONTACT_EXTRA = 40;   // spare instances (arc end caps)
+const contactGeo = new THREE.CircleGeometry(1, 20); contactGeo.rotateX(-Math.PI/2);
+const contact = new THREE.InstancedMesh(contactGeo, new THREE.MeshBasicMaterial({map:discTex, color:0x000000, transparent:true, opacity:0.5, depthWrite:false}), towers.length + CONTACT_EXTRA);
+contact.frustumCulled = false; contact.renderOrder = 1; world.add(contact);
+{ const Z = new THREE.Matrix4().makeScale(0,0,0); for (let i = 0; i < towers.length + CONTACT_EXTRA; i++) contact.setMatrixAt(i, Z); contact.instanceMatrix.needsUpdate = true; }
+/* imperfection, set once from a seeded PRNG (stable across reloads, never animated): per brick a rotation jitter of ±0.6°
+   about its own axis, a lateral offset of ±1.5% of the brick width, ±3% lightness and ±2% saturation; per tower a lean of
+   up to ~1° that accumulates with height; about one brick in forty sits 4% proud of its slot. */
+const JIT_ROT = 0.6*deg, JIT_OFF = 0.015, JIT_L = 0.03, JIT_S = 0.02, LEAN_MAX = 1.0*deg, PROUD_EVERY = 40, PROUD_LIFT = 0.04;
+function prng(seed){ let a = (seed*2654435761 + 1013904223) >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function seedJitter(t, cap){
+  const r = prng(t.brickStart + 1), n = cap;
+  t.jitRot = new Float32Array(n); t.jitOff = new Float32Array(n*2); t.jitLift = new Float32Array(n); t.jitHSL = new Float32Array(n*2);
+  for (let k = 0; k < n; k++){ t.jitRot[k] = (r()*2-1)*JIT_ROT; t.jitOff[k*2] = (r()*2-1)*JIT_OFF; t.jitOff[k*2+1] = (r()*2-1)*JIT_OFF; t.jitLift[k] = r() < 1/PROUD_EVERY ? PROUD_LIFT : 0; t.jitHSL[k*2] = (r()*2-1)*JIT_L; t.jitHSL[k*2+1] = (r()*2-1)*JIT_S; }
+  const a = r()*Math.PI*2; t.leanAxis = new THREE.Vector3(Math.cos(a), 0, Math.sin(a)); t.lean = LEAN_MAX*Math.min(1, n/MAX_BRICKS)*(0.4 + 0.6*r());
+}
+towers.forEach(t => seedJitter(t, t.isCity ? CITY_MAX_BRICKS : t.n));
 { // initial colours + zero matrices (every instance, including the reserved city slots)
   const col = new THREE.Color(), Z = new THREE.Matrix4().makeScale(0,0,0);
-  for (let i=0;i<towers.total;i++){ bricks.setMatrixAt(i, Z); bricks.setColorAt(i, col.setHex(0x8a8f98)); for (let j=0;j<4;j++){ studs.setMatrixAt(i*4+j, Z); studs.setColorAt(i*4+j, col); } }
+  for (let i=0;i<towers.total;i++){ bricks.setMatrixAt(i, Z); bricks.setColorAt(i, col.setHex(0x9a948a)); for (let j=0;j<4;j++){ studs.setMatrixAt(i*4+j, Z); studs.setColorAt(i*4+j, col); } }
   towers.forEach(t => t.colors.forEach((hex,k) => { const i = t.brickStart+k; bricks.setColorAt(i, col.setHex(hex)); bricks.setMatrixAt(i, Z); for (let j=0;j<4;j++){ studs.setColorAt(i*4+j, col); studs.setMatrixAt(i*4+j, Z); } }));
   bricks.instanceColor.needsUpdate = studs.instanceColor.needsUpdate = true;
 }
 const _M = new THREE.Matrix4(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _c = new THREE.Color();
 const _white = new THREE.Color(0xffffff);
+const _q = new THREE.Quaternion(), _qr = new THREE.Quaternion(), _ql = new THREE.Quaternion(), _dir = new THREE.Vector3(), _lx = new THREE.Vector3(), _so = new THREE.Vector3(), _Y = new THREE.Vector3(0,1,0);
+const easePlastic = t => { const c1 = 1.04, c3 = c1+1; return 1 + c3*Math.pow(t-1,3) + c1*Math.pow(t-1,2); };   // ease-out with ~4% overshoot that settles
+function writeContact(t){
+  const vis = t.v > 0.05, r = vis ? t.dims.w*(t.isContinent ? 1.9 : 2.2) : 0;
+  _s.set(r, r, r); _p.copy(t.pos).multiplyScalar(1.002); _M.compose(_p, t.quat, _s); contact.setMatrixAt(t.idx, _M);
+}
 function writeTower(t){
-  const {dims} = t; let cum = 0;
+  const {dims} = t, o = dims.w*0.25; let cum = 0;
+  _lx.copy(t.leanAxis).applyQuaternion(t.quat);                               // the tower's lean axis in world-local space
   for (let k=0;k<t.n;k++){
-    const i = t.brickStart+k, u = clamp(t.v-k, 0, 1), h = u<=0 ? 0 : u>=1 ? 1 : easeOutBack(u);
+    const i = t.brickStart+k, u = clamp(t.v-k, 0, 1), h = u<=0 ? 0 : u>=1 ? 1 : easePlastic(u);
     if (h <= 0.0001){ _s.set(0,0,0); _M.compose(_p.set(0,0,0), t.quat, _s); bricks.setMatrixAt(i,_M); for (let j=0;j<4;j++) studs.setMatrixAt(i*4+j,_M); continue; }
     const bh = dims.h*h;
-    _p.copy(t.pos).addScaledVector(t.normal, cum);
-    _s.set(dims.w, bh, dims.d); _M.compose(_p, t.quat, _s); bricks.setMatrixAt(i,_M);
+    _ql.setFromAxisAngle(_lx, t.lean*(k/Math.max(1, t.n-1)));                 // cumulative lean
+    _qr.setFromAxisAngle(_Y, t.jitRot[k]); _q.copy(_ql).multiply(t.quat).multiply(_qr);
+    _dir.copy(t.normal).applyQuaternion(_ql);
+    _p.copy(t.pos).addScaledVector(_dir, cum + t.jitLift[k]*dims.h);
+    _so.set(t.jitOff[k*2]*dims.w, 0, t.jitOff[k*2+1]*dims.d).applyQuaternion(t.quat); _p.add(_so);
+    _s.set(dims.w, bh, dims.d); _M.compose(_p, _q, _s); bricks.setMatrixAt(i,_M);
     _s.set(dims.stud_r, dims.stud_h*h, dims.stud_r);
-    for (let j=0;j<4;j++){ _p.copy(t.pos).addScaledVector(t.normal, cum+bh).add(t.studOffsets[j]); _M.compose(_p, t.quat, _s); studs.setMatrixAt(i*4+j,_M); }
+    for (let j=0;j<4;j++){ _so.set(j&1 ? o : -o, bh, j&2 ? o : -o).applyQuaternion(_q); _M.compose(_so.add(_p), _q, _s); studs.setMatrixAt(i*4+j,_M); }
     cum += bh;
   }
+  writeContact(t);
 }
 /* focus: when a country is selected, everything else gets a slight black wash. The selected tower keeps its true colours. */
 const focus = { set:null, f:0, target:0, applied:undefined };   // f: 0 = nothing dimmed, 1 = others dimmed
@@ -356,7 +426,7 @@ function setFocus(list){ focus.set = list && list.length ? new Set(list) : null;
 function paintTower(t){
   const inFocus = !focus.set || focus.set.has(t), mul = inFocus ? 1 : lerp(1, FOCUS_DIM, focus.f);
   const hoverTint = t.hover && !(state.selected && state.selected._tower === t) ? 0.28 : 0;
-  for (let k=0;k<t.n;k++){ const i=t.brickStart+k; _c.setHex(t.colors[k]); if (hoverTint) _c.lerp(_white, hoverTint); _c.multiplyScalar(mul); bricks.setColorAt(i,_c); for (let j=0;j<4;j++) studs.setColorAt(i*4+j,_c); }
+  for (let k=0;k<t.n;k++){ const i=t.brickStart+k; _c.setHex(t.colors[k]).offsetHSL(0, t.jitHSL[k*2+1], t.jitHSL[k*2]); if (hoverTint) _c.lerp(_white, hoverTint); _c.multiplyScalar(mul); bricks.setColorAt(i,_c); for (let j=0;j<4;j++) studs.setColorAt(i*4+j,_c); }
 }
 function setTowerTint(t, bright){ t.hover = !!bright; paintTower(t); bricks.instanceColor.needsUpdate = studs.instanceColor.needsUpdate = true; }
 function stepFocus(dt){
@@ -366,7 +436,7 @@ function stepFocus(dt){
   for (const t of towers) paintTower(t);
   bricks.instanceColor.needsUpdate = studs.instanceColor.needsUpdate = true;
   const wash = lerp(1, 0.55, focus.f); landDots.material.color.setScalar(wash);          // land dots and data centres get the same slight wash
-  focus.dcMul = lerp(1, 0.6, focus.f);
+  focus.dcMul = lerp(1, 0.6, focus.f); dcMesh.material.color.setScalar(focus.dcMul);
 }
 function animateTower(t, target, dur, delay, now){ t.from = t.v; t.to = target; t.t0 = now + (delay||0); t.dur = dur; }
 function stepTowers(now){
@@ -379,7 +449,7 @@ function stepTowers(now){
     const nb = Math.floor(t.v); if (nb !== t.nb){ sfx.brick(nb, nb > (t.nb||0)); t.nb = nb; }
     if (p >= 1) t.t0 = -1;
   }
-  if (dirty){ bricks.instanceMatrix.needsUpdate = true; studs.instanceMatrix.needsUpdate = true; }
+  if (dirty){ bricks.instanceMatrix.needsUpdate = true; studs.instanceMatrix.needsUpdate = true; contact.instanceMatrix.needsUpdate = true; }
 }
 
 /* which data centres most plausibly serve each country: in-country sites, the nearest foreign site, and Northern Virginia
@@ -452,7 +522,8 @@ const _cup = new THREE.Vector3(0,1,0), _ctmp = new THREE.Vector3(), _Z = new THR
 function clearCitySlot(t){
   t.v = 0; t.to = 0; t.t0 = -1; t.nb = 0;
   for (let k=0;k<CITY_MAX_BRICKS;k++){ const i = t.brickStart+k; bricks.setMatrixAt(i,_Z); for (let j=0;j<4;j++) studs.setMatrixAt(i*4+j,_Z); }
-  bricks.instanceMatrix.needsUpdate = studs.instanceMatrix.needsUpdate = true;
+  contact.setMatrixAt(t.idx, _Z);
+  bricks.instanceMatrix.needsUpdate = studs.instanceMatrix.needsUpdate = contact.instanceMatrix.needsUpdate = true;
 }
 function cityObjects(c){
   if (c._cityObjs) return c._cityObjs;
@@ -482,7 +553,7 @@ function retarget(dur, stagger){
 }
 
 /* selection ring */
-const ring = new THREE.Mesh(new THREE.RingGeometry(1, 1.22, 48), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0.85, side:THREE.DoubleSide, depthWrite:false}));
+const ring = new THREE.Mesh(new THREE.RingGeometry(1, 1.08, 48), new THREE.MeshBasicMaterial({color:0xece7dc, transparent:true, opacity:0.9, side:THREE.DoubleSide, depthWrite:false}));
 ring.geometry.rotateX(-Math.PI/2); ring.visible = false; world.add(ring);
 function placeRingAt(pos, quat, r){ ring.visible = true; ring.position.copy(pos).multiplyScalar(1.003); ring.quaternion.copy(quat); ring.scale.set(r,r,r); ring.userData.base = r; ring.userData.t0 = performance.now(); }
 function placeRing(t){
@@ -541,7 +612,6 @@ function resize(){
   view.maxDist = Math.max(2.4, fitDist);
   if (wasMax || view.tDist > view.maxDist) view.tDist = view.maxDist;
   if (!state.built) view.dist = view.tDist;
-  dcMesh.userData.halo.material.uniforms.scale.value = H*0.75;
 }
 const FLY_TILT = 45*deg;   // viewing angle off the tower's axis: side-on enough to read the bricks
 const FLY_FOCUS = 0.5;      // the tower's midpoint sits at the exact centre of the main area
@@ -924,5 +994,6 @@ export {
   cityObjects, showCities, clearArcs, showArcs, stepArcs, ring, placeRing, placeRingAt,
   applyView, panBy, zoomAt, isNarrow, panelWidth, measureCanvas, resize, fitDistFor, flyTo,
   toScreen, castAt, hitTest, endPointer, dragging, lastPointerType, markSelected, stepHover, showTip, setHover,
-  setMode, resetView, eggs, updateCompass
+  setMode, resetView, eggs, updateCompass,
+  quality, setQuality, contact, BRICKS_PER_INDEX_POINT, noiseTex, studTex, discTex
 };

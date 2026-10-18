@@ -1,9 +1,9 @@
   :root{
-    --bg:#07080c; --panel:rgba(24,24,27,0.72); --line:rgba(255,255,255,0.08); --fill:rgba(120,120,128,0.22); --fill-strong:rgba(255,255,255,0.14); --glass:blur(28px) saturate(170%); --shadow:0 12px 40px rgba(0,0,0,.38);
+    --bg:#14120f; --panel:rgba(24,24,27,0.72); --line:rgba(255,255,255,0.08); --fill:rgba(120,120,128,0.22); --fill-strong:rgba(255,255,255,0.14); --glass:blur(28px) saturate(170%); --shadow:0 12px 40px rgba(0,0,0,.38);
     --text:#f5f5f7; --muted:rgba(245,245,247,0.6); --accent:#f5f5f7; --accent-dim:rgba(255,255,255,0.10);
     --ease:cubic-bezier(.22,.8,.3,1); --panel-w:420px;
-    --c-anthropic:#d97757; --c-openai:#f5f5f0; --c-google:#4285f4; --c-meta:#6366f1; --c-mistral:#ff6a00; --c-deepseek:#2dd4bf; --c-local:#8a8f98;
-    --o-aws:#f59e0b; --o-microsoft:#7fba00; --o-google:#4285f4; --o-meta:#6366f1; --o-oracle:#f0453a; --o-other:#e879f9;
+    --c-anthropic:#cf6f4e; --c-openai:#ece7dc; --c-google:#3a8ad6; --c-meta:#6a4fb8; --c-mistral:#e8651a; --c-deepseek:#2fb8a6; --c-local:#9a948a;
+    --o-aws:#e09a2a; --o-microsoft:#7aa82a; --o-google:#3a8ad6; --o-meta:#6a4fb8; --o-oracle:#d8463d; --o-other:#d070e0;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{overscroll-behavior:none}
@@ -217,9 +217,9 @@
   /* intro: a claim, one line of explanation, one call to action. Shown over #placeholder before the 3D scene is ready. */
   #placeholder{position:fixed;inset:0;z-index:1;pointer-events:none;background:var(--bg);transition:opacity .6s var(--ease)}
   #placeholder i{position:absolute;left:50%;top:50%;width:min(78vmin,760px);height:min(78vmin,760px);transform:translate(-50%,-50%);border-radius:50%;
-    background:radial-gradient(circle,rgba(147,163,201,.55) 1px,transparent 1.7px) 0 0/14px 14px,#0e1322;
+    background:radial-gradient(circle,rgba(190,186,176,.28) 1.2px,transparent 1.9px) 0 0/12px 12px,#1e2522;
     -webkit-mask:radial-gradient(circle at 42% 40%,#000 0,rgba(0,0,0,.55) 55%,rgba(0,0,0,.08) 100%);mask:radial-gradient(circle at 42% 40%,#000 0,rgba(0,0,0,.55) 55%,rgba(0,0,0,.08) 100%);
-    box-shadow:0 0 0 1px rgba(79,126,232,.18),0 0 60px rgba(79,126,232,.18)}
+    box-shadow:0 0 0 1px rgba(255,241,220,.08),0 0 60px rgba(0,0,0,.5)}
   body.ready #placeholder{opacity:0}
   #intro{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;overflow-y:auto;overscroll-behavior:contain;padding:12px 0;background:radial-gradient(ellipse at center,rgba(7,8,12,.55),rgba(7,8,12,.88));backdrop-filter:blur(2px);opacity:0;animation:introIn .6s var(--ease) .2s forwards;transition:opacity .4s var(--ease)}
   #intro.out{opacity:0!important;pointer-events:none}

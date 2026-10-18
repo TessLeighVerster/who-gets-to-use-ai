@@ -23,7 +23,7 @@ for (const iso of isos){
   const buf = Buffer.from(data.split(",")[1], "base64");
   const dir = path.join(root, "c", iso); fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, "card.png"), buf); total += buf.length;
-  if (opt.square !== undefined){ const sq = await page.evaluate((iso) => window.renderCard(iso, 1080, 1080), iso); fs.mkdirSync(path.join(here, "shots"), { recursive: true }); fs.writeFileSync(path.join(here, "shots", `card-${iso}-1080.png`), Buffer.from(sq.split(",")[1], "base64")); }
+  if ("square" in opt){ const sq = await page.evaluate((iso) => window.renderCard(iso, 1080, 1080), iso); fs.mkdirSync(path.join(here, "shots"), { recursive: true }); fs.writeFileSync(path.join(here, "shots", `card-${iso}-1080.png`), Buffer.from(sq.split(",")[1], "base64")); }
 }
 await browser.close(); srv.close();
 console.log(`${isos.length} cards, ${(total / 1e6).toFixed(2)} MB total (${Math.round(total / isos.length / 1e3)} KB each) under c/{iso}/card.png`);
