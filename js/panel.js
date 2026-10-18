@@ -7,9 +7,9 @@ import { DATA, CONTINENTS, YEARS, PROMPTS_PER_SECOND } from "./model.js";
 import { state, view, COARSE, TAP } from "./state.js";
 import { sfx } from "./sfx.js";
 import { detectCountry } from "./geo.js";
-import { shareCountry } from "./shareCard.js";
+import { shareCountry, toast } from "./shareCard.js";
 import { writeUrlState } from "./urlState.js";
-import { MAX_BRICKS, DC_BRICK, CITY_BRICK, CITY_SLOTS, cityTowers, brickColors, cityObjects, showCities, setFocus, setTowerTint, clearArcs, showArcs, placeRing, placeRingAt, flyTo, fitDistFor, isNarrow, resize, setMode, markSelected } from "./scene.js";
+import { MAX_BRICKS, DC_BRICK, CITY_BRICK, CITY_SLOTS, cityTowers, brickColors, cityObjects, showCities, setFocus, setTowerTint, clearArcs, showArcs, placeRing, placeRingAt, flyTo, fitDistFor, isNarrow, resize, setMode, markSelected, retarget, setDCFocus } from "./scene.js";
 
 if (COARSE){ const sub = $("#v-usage p.sub"); sub.textContent = sub.textContent.replace("Click", "Tap"); }
 
@@ -22,7 +22,7 @@ const MY_ISO = detectCountry(new Set(DATA.countries.map(c => c.iso)));
 const topCountry = () => DATA.countries.reduce((a, b) => (b.usageIndex > a.usageIndex ? b : a), DATA.countries[0]);
 const estSpan = (c, field, html) => (c.provenance && c.provenance[field] && c.provenance[field].estimated) ? `<span class="est" title="Modelled estimate, not a sourced figure">${html}<sup>est.</sup></span>` : html;
 /* legend */
-$("#lg-prov").innerHTML = PROVIDERS.map(p => `<li><i class="sw" style="background:${hexCss(PROVIDER_COLOR[p])}"></i>${PROVIDER_LABEL[p]}</li>`).join("");
+$("#lg-prov").innerHTML = PROVIDERS.map(p => `<li data-prov="${p}" title="Show the top countries for ${PROVIDER_LABEL[p]}"><i class="sw" style="background:${hexCss(PROVIDER_COLOR[p])}"></i>${PROVIDER_LABEL[p]}</li>`).join("");
 $("#lg-op").innerHTML = OPERATORS.map(o => `<li><i class="sw dc" style="background:${hexCss(OPERATOR_COLOR[o])};color:${hexCss(OPERATOR_COLOR[o])}"></i>${OPERATOR_LABEL[o]}</li>`).join("");
 
 /* phones: the sheet slides up under the finger when a tower is tapped, so a second quick tap would land on a tab or a row and send the user elsewhere; the sheet ignores taps for its first half second */
@@ -121,10 +121,41 @@ $("#collapse").addEventListener("click", () => {
 
 /* usage tab */
 const rowHTML = (c, i, val, max, cls) => `<li class="row ${cls||""}" data-iso="${c.iso}"><span class="rk">${i+1}</span><span class="nm">${c.name}<span class="bar"><i style="transform:scaleX(${(val/max).toFixed(3)})"></i></span></span><span class="v">${Math.round(val)}</span></li>`;
-{
-  const sorted = [...DATA.countries].sort((a,b)=>b.usageIndex-a.usageIndex);
-  $("#usageList").innerHTML = sorted.map((c,i) => rowHTML(c,i,c.usageIndex,100, c.usageIndex<10?"low":"")).join("");
+const TOP_N = 10;
+function renderUsageList(){
+  const p = state.providerFilter;
+  if (!p){
+    const sorted = [...DATA.countries].sort((a,b)=>b.usageIndex-a.usageIndex);
+    $("#usageList").innerHTML = sorted.map((c,i) => rowHTML(c,i,c.usageIndex,100, c.usageIndex<10?"low":"")).join("");
+    $("#usageHead").textContent = "Usage per person"; $("#usageSub").textContent = "Index of AI usage per capita, top country = 100. Click a row to fly there."; $("#filterBar").hidden = true;
+  } else {
+    const sorted = [...DATA.countries].sort((a,b)=>(b.providerShare[p]||0)-(a.providerShare[p]||0));
+    const max = Math.max(...sorted.map(c => (c.providerShare[p]||0)*100));
+    $("#usageList").innerHTML = sorted.map((c,i) => rowHTML(c,i,(c.providerShare[p]||0)*100,max, i >= TOP_N ? "low" : "")).join("");
+    $("#usageHead").textContent = `${PROVIDER_LABEL[p]} · share of usage`; $("#usageSub").textContent = `Countries ranked by the share of their AI usage that goes to ${PROVIDER_LABEL[p]} models (modelled estimate). The top ${TOP_N} stay up on the globe.`;
+    $("#filterBar").hidden = false; $("#filterLabel").textContent = `Showing the top ${TOP_N} countries for ${PROVIDER_LABEL[p]}`;
+  }
+  runSearch();
 }
+function setProviderFilter(p){
+  state.providerFilter = p || null;
+  state.providerTop = p ? new Set([...DATA.countries].sort((a,b)=>(b.providerShare[p]||0)-(a.providerShare[p]||0)).slice(0, TOP_N)) : null;
+  document.querySelectorAll("li[data-prov]").forEach(li => li.classList.toggle("on", li.dataset.prov === p));
+  document.body.classList.toggle("filtering", !!p);
+  if (p && (state.selected || state.selectedDC)) select(null, true);
+  if (p) showTab("usage");
+  renderUsageList(); retarget(700, true); sfx.toggle();
+}
+document.addEventListener("click", e => { const li = e.target.closest("li[data-prov]"); if (!li) return; setProviderFilter(state.providerFilter === li.dataset.prov ? null : li.dataset.prov); });
+$("#filterClear").addEventListener("click", () => setProviderFilter(null));
+/* page share: the native share sheet with the site link where there is one; otherwise copy the link */
+$("#siteShare").addEventListener("click", async () => {
+  const url = "https://whogetstobuildwithai.com/" + (state.selected && !state.selected.isContinent ? "c/" + state.selected.iso + "/" : ""), title = "Who gets to build with AI?";
+  const text = state.selected && !state.selected.isContinent ? `Here's where ${state.selected.name} stands on AI access. See yours:` : "A Lego globe of who gets to build with AI. Every tower is a country.";
+  if (navigator.share){ try { await navigator.share({ title, text, url }); return; } catch (e){ if (e && e.name === "AbortError") return; } }
+  try { await Promise.race([navigator.clipboard.writeText(url), new Promise((_, rej) => setTimeout(() => rej(new Error("clipboard timeout")), 1500))]); toast(`Link copied: ${url}`); }
+  catch (_){ toast(url); }
+});
 /* access tab */
 {
   const sorted = [...DATA.countries].sort((a,b)=>b.access-a.access);
@@ -203,8 +234,9 @@ function select(ref, keepTab, switching){
   if (!ref || ref.isContinent){ showCities(null); setFocus(null); }
   document.querySelectorAll(".row.sel").forEach(el => el.classList.remove("sel"));
   clearArcs();
+  const fab0 = $("#shareFab"); if (fab0) fab0.hidden = true;
   if (!ref){
-    placeRing(null);
+    placeRing(null); setDCFocus(null); retarget(700, false);
     if (prev || state.selectedDC) sfx.close();
     if (view.autoPan && !switching){ view.tPanX = view.tPanY = 0; view.autoPan = false; if (view.restoreDist){ view.tDist = view.restoreDist; view.restoreDist = 0; } }
     if (!keepTab){ document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "v-"+state.tab)); }
@@ -214,7 +246,8 @@ function select(ref, keepTab, switching){
   if (!view.autoPan) view.restoreDist = view.tDist;   // remember the zoom we came from, restored when the card closes
   sfx.select();
   if (!ref.isContinent){ showCities(ref); setFocus([t, ...cityTowers, ...state.pinned.map(p => p._tower)]); }
-  if (!ref.isContinent) showArcs(ref.servedBy.map(d => ({from:t.pos, to:d._pos, color:OPERATOR_COLOR[d.operator], dc:d})));
+  if (!ref.isContinent) showArcs(ref.servedBy.map(d => ({from:t.pos, to:d._pos, color:OPERATOR_COLOR[d.operator], dc:d, label:`${OPERATOR_LABEL[d.operator]} · ${d.city}${d.iso === ref.iso ? " · in-country" : d.name === "us-east-1" ? " · frontier models" : " · nearest region"}`})), `Where ${ref.name}'s prompts likely travel`);
+  setDCFocus(ref.isContinent ? null : ref.servedBy); retarget(700, false);
   const L = t.n * ref.growthCurve[state.year] * t.dims.h;                                  // this tower's height once settled
   const Lmax = Math.max(L, ...cityTowers.map(ct => ct.n * ct.dims.h * (ct.cityOf === ref ? ref.growthCurve[state.year] : 0)));
   flyTo(ref, fitDistFor(ref.isContinent ? L : Lmax), L);                                  // whole tower in frame, its midpoint dead centre
@@ -231,6 +264,7 @@ function select(ref, keepTab, switching){
   wireDC();
   const wireShare = () => { const sb = $("#shareBtn"); if (sb) sb.onclick = async () => { sb.disabled = true; try { await shareCountry(ref); } finally { sb.disabled = false; } }; };
   wireShare();
+  const fab = $("#shareFab"); if (fab && !ref.isContinent){ fab.hidden = false; fab.querySelector("span").textContent = `Share ${ref.name}'s card`; fab.onclick = async () => { fab.disabled = true; try { await shareCountry(ref); } finally { fab.disabled = false; } }; }
   const pb = $("#pinBtn"); if (pb) pb.onclick = () => { togglePin(ref); cardEl.innerHTML = cardHTML(ref); $("#closeCard").onclick = () => select(null); $("#backBtn").onclick = () => select(null); $("#pinBtn").onclick = pb.onclick; wireDC(); wireShare(); };
 }
 
@@ -256,7 +290,8 @@ function selectDC(d){
   if (!hadSel) view.restoreDist = view.tDist;
   sfx.select();
   const c = DATA.countries.find(x => x.iso === d.iso), cname = c ? c.name : (EXTRA_COUNTRY[d.iso] || d.iso);
-  showArcs(d.serves.slice(0,14).map(cc => ({from:d._pos, to:cc._tower.pos, color:OPERATOR_COLOR[d.operator], dc:d})));
+  showArcs(d.serves.slice(0,14).map(cc => ({from:d._pos, to:cc._tower.pos, color:OPERATOR_COLOR[d.operator], dc:d, label:cc.name})), `Countries ${d.name} likely serves`);
+  setDCFocus([d]); retarget(700, false);
   _dn.copy(d._pos).normalize(); _dq.setFromUnitVectors(_dup, _dn); placeRingAt(d._pos, _dq, DC_BRICK.w*1.6);
   flyTo(d, Math.min(view.tDist, lerp(view.minDist, view.maxDist, 0.25)), 0);
   const col = hexCss(OPERATOR_COLOR[d.operator]);
@@ -308,4 +343,5 @@ function drawPins(){
   svg.innerHTML = out;
 }
 
-export { openSheet, syncSheet, showTab, toggleTicker, searchEl, runSearch, tickCounters, cardHTML, select, focusCity, selectDC, togglePin, drawPins };
+renderUsageList();
+export { openSheet, syncSheet, showTab, toggleTicker, searchEl, runSearch, tickCounters, cardHTML, select, focusCity, selectDC, togglePin, drawPins, setProviderFilter };

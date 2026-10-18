@@ -121,15 +121,15 @@ const canvas = $("#scene");
 const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false, powerPreference:"high-performance"});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, window.matchMedia("(max-width:900px)").matches ? 1.5 : 2));   // lighter on phones
 renderer.setClearColor(0x15171c, 1);
-renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 50);
 const world = new THREE.Group();   // everything that rotates
 scene.add(world);
 
 /* lighting: one warm key light and one cool, low hemisphere fill. No shadows, no point lights. */
-const key = new THREE.DirectionalLight(0xfff1dc, 1.75); key.position.set(-2.5, 3, 4); scene.add(key);
-const hemi = new THREE.HemisphereLight(0x9fb0cf, 0x2b2a30, 0.8); scene.add(hemi);
+const key = new THREE.DirectionalLight(0xfff1dc, 1.25); key.position.set(-2.5, 3, 4); scene.add(key);
+const hemi = new THREE.HemisphereLight(0xaab8d4, 0x3c3b44, 1.0); scene.add(hemi);
 
 /* quality tier: "low" on phones (small viewport at 2x+), on <=4-core devices, or when the first 60 frames average under
    50 fps (js/main.js calls setQuality); "high" otherwise. ?quality=low|high overrides. Low = high minus the textures. */
@@ -150,6 +150,27 @@ const studTex = canvasTexture(512, (g, s) => { g.fillStyle = "#b4b4b4"; g.fillRe
     const grd = g.createRadialGradient(cx - r*0.3, cy - r*0.3, r*0.1, cx, cy, r); grd.addColorStop(0, "#d8d8d8"); grd.addColorStop(0.75, "#c4c4c4"); grd.addColorStop(1, "#8c8c8c");
     g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, r, 0, Math.PI*2); g.fill(); } }, [48, 24]);
 const discTex = canvasTexture(64, (g, s) => { const grd = g.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2); grd.addColorStop(0, "rgba(255,255,255,1)"); grd.addColorStop(0.55, "rgba(255,255,255,0.55)"); grd.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = grd; g.fillRect(0, 0, s, s); });
+
+/* sky: a sparse field of faint stars and a soft milky-way band, two Points draw calls, generated once with a seeded PRNG */
+{
+  const starTex = canvasTexture(32, (g, sz) => { const grd = g.createRadialGradient(sz/2, sz/2, 0, sz/2, sz/2, sz/2); grd.addColorStop(0, "rgba(255,255,255,1)"); grd.addColorStop(0.4, "rgba(255,255,255,0.55)"); grd.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = grd; g.fillRect(0, 0, sz, sz); });
+  starTex.wrapS = starTex.wrapT = THREE.ClampToEdgeWrapping;
+  let seed = 19; const rnd = () => (seed = (seed*48271)%2147483647)/2147483647;
+  const gauss = () => (rnd()+rnd()+rnd()+rnd()-2)*0.86;
+  const field = (N, bandSigma, size, opacity, color) => {
+    const pos = new Float32Array(N*3), v = new THREE.Vector3(), tilt = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.95, 0.3, 0.4));
+    for (let i = 0; i < N; i++){
+      if (bandSigma){ const a = rnd()*Math.PI*2, lat = gauss()*bandSigma; v.set(Math.cos(a)*Math.cos(lat), Math.sin(lat), Math.sin(a)*Math.cos(lat)).applyQuaternion(tilt); }
+      else v.set(rnd()*2-1, rnd()*2-1, rnd()*2-1).normalize();
+      v.multiplyScalar(30 + rnd()*8); pos.set([v.x, v.y, v.z], i*3);
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    const m = new THREE.Points(g, new THREE.PointsMaterial({color, size, sizeAttenuation:true, map:starTex, transparent:true, opacity, depthWrite:false})); m.frustumCulled = false; m.renderOrder = -1; return m;
+  };
+  scene.add(field(1600, 0, 0.12, 0.38, 0xd8dde8));          // stars
+  scene.add(field(5000, 0.16, 0.22, 0.09, 0xcfd6e6));       // the band: many faint, slightly larger points along a tilted great circle
+  scene.add(field(900, 0.07, 0.10, 0.3, 0xe8e4d8));         // brighter core of the band
+}
 
 /* baseplate: a deep blue-charcoal plate with a low-contrast stud pattern (texture, not geometry) */
 const plateMat = new THREE.MeshStandardMaterial({color:0x272b34, roughness:0.9, metalness:0, roughnessMap: quality.tier === "high" ? studTex : null, bumpMap: quality.tier === "high" ? studTex : null, bumpScale:0.0022});
@@ -228,7 +249,7 @@ let landDots;
   landDots = new THREE.InstancedMesh(discGeo, new THREE.MeshBasicMaterial({color:0xffffff}), n);
   landDots.frustumCulled = false;
   const M = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0,1,0), s = new THREE.Vector3(), p = new THREE.Vector3();
-  for (let i=0;i<n;i++){ p.set(pos[i*3], pos[i*3+1], pos[i*3+2]); q.setFromUnitVectors(up, tmp.copy(p).normalize()); s.setScalar(0.0062*R); M.compose(p.multiplyScalar(R*1.0015), q, s); landDots.setMatrixAt(i, M); }
+  for (let i=0;i<n;i++){ p.set(pos[i*3], pos[i*3+1], pos[i*3+2]); q.setFromUnitVectors(up, tmp.copy(p).normalize()); s.setScalar(0.0034*R); M.compose(p.multiplyScalar(R*1.0015), q, s); landDots.setMatrixAt(i, M); }
   landDots.instanceMatrix.needsUpdate = true;
   const applySkin = name => { const arr = skins[name] || skins.plain; for (let i=0;i<n;i++) landDots.setColorAt(i, cc.setRGB(arr[i*3], arr[i*3+1], arr[i*3+2])); landDots.instanceColor.needsUpdate = true; };
   applySkin("plain");
@@ -355,7 +376,7 @@ function chamferBox(c){
 const brickGeo = chamferBox(0.07);
 const studGeo = new THREE.CylinderGeometry(1,1,1,12); studGeo.translate(0,0.5,0);
 /* glossy ABS: roughness 0.45, no metalness, faint roughness variation from the shared noise texture (high tier) */
-const brickMat = new THREE.MeshStandardMaterial({roughness:0.52, metalness:0, roughnessMap: quality.tier === "high" ? noiseTex : null, flatShading: quality.tier === "low"});
+const brickMat = new THREE.MeshStandardMaterial({roughness:0.6, metalness:0, roughnessMap: quality.tier === "high" ? noiseTex : null, flatShading: quality.tier === "low"});
 const bricks = new THREE.InstancedMesh(brickGeo, brickMat, towers.total);
 const studs = new THREE.InstancedMesh(studGeo, brickMat, towers.total*4);
 bricks.frustumCulled = studs.frustumCulled = false;
@@ -459,15 +480,48 @@ function stepTowers(now){
   });
 }
 /* arcs: solid plastic tubes in the operator colour (js/arcs.js). Spare contact-disc instances become the end caps. */
-const arcsCtl = createArcs({ world, contact, contactBase: towers.length, contactSpare: CONTACT_EXTRA, isPhone: () => isNarrow(), lowTier: () => quality.tier === "low" });
-function clearArcs(){ arcsCtl.clear(); }
-function showArcs(pairs){ arcsCtl.show(pairs); }   // pairs: [{from:Vector3, to:Vector3, color, dc}]
-function stepArcs(now){ arcsCtl.step(now); }
+const _prj = new THREE.Vector3(), _prjN = new THREE.Vector3(), _prjC = new THREE.Vector3();
+function projectLocal(v){   // world-local point → page pixels, and whether it faces the camera (not behind the globe's horizon)
+  _prj.copy(v).applyQuaternion(world.quaternion); _prjN.copy(_prj).normalize(); camera.getWorldPosition(_prjC);
+  const facing = _prjN.dot(_prjC.sub(_prj)) > 0; toScreen(_prj);
+  const r = _panelRect, covered = r && _prj.x >= r.left && _prj.x <= r.right && _prj.y >= r.top && _prj.y <= r.bottom;
+  return { x: _prj.x, y: _prj.y, visible: facing && !covered && _prj.x >= VX && _prj.x <= VX + VW && _prj.y >= VY && _prj.y <= VY + VH };
+}
+let _panelRect = null;
+const arcsCtl = createArcs({ world, contact, contactBase: towers.length, contactSpare: CONTACT_EXTRA, isPhone: () => isNarrow(), lowTier: () => quality.tier === "low", project: projectLocal });
+function clearArcs(){ lastPairs = null; arcsCtl.clear(); }
+let routesOn = (() => { try { return localStorage.getItem("routes") !== "0"; } catch (_) { return true; } })();
+let lastPairs = null, lastCaption = null;
+function showArcs(pairs, caption){ lastPairs = pairs; lastCaption = caption; if (routesOn) arcsCtl.show(pairs, caption); else arcsCtl.clear(); }   // pairs: [{from:Vector3, to:Vector3, color, dc, label}]
+function setRoutes(on){
+  routesOn = !!on; try { localStorage.setItem("routes", routesOn ? "1" : "0"); } catch (_) {}
+  const b = $("#routesToggle"); if (b){ b.classList.toggle("on", routesOn); b.setAttribute("aria-pressed", routesOn); }
+  if (routesOn && lastPairs && (state.selected || state.selectedDC)) arcsCtl.show(lastPairs, lastCaption); else arcsCtl.clear();
+}
+const routesBtn = $("#routesToggle"); if (routesBtn){ routesBtn.classList.toggle("on", routesOn); routesBtn.setAttribute("aria-pressed", routesOn); routesBtn.addEventListener("click", () => { setRoutes(!routesOn); sfx.toggle(); }); }
+function stepArcs(now){ if (arcsCtl.count){ const p = $("#panel"); _panelRect = p && !document.body.classList.contains("intro") ? p.getBoundingClientRect() : null; } arcsCtl.step(now); }
 const arcCount = () => arcsCtl.count;
 
+const LOWERED_BRICKS = 1;   // while something is selected, unrelated towers drop to this many bricks so the selection stands clear
+function keepUp(t){
+  const sel = state.selected, dc = state.selectedDC;
+  if (sel && !sel.isContinent) return t.ref === sel || state.pinned.includes(t.ref);
+  if (dc) return (dc.serves || []).includes(t.ref) || state.pinned.includes(t.ref);
+  if (state.providerTop) return state.providerTop.has(t.ref) || state.pinned.includes(t.ref);   // legend filter: top countries for one provider
+  return true;
+}
 function targetBricks(t){
   if (t.isCity) return (state.mode === "countries" && t.cityOf && state.selected === t.cityOf) ? t.n * t.cityOf.growthCurve[state.year] : 0;
-  const on = (state.mode==="continents") === t.isContinent; return on ? t.n * t.ref.growthCurve[state.year] : 0;
+  const on = (state.mode==="continents") === t.isContinent; if (!on) return 0;
+  const full = t.n * t.ref.growthCurve[state.year];
+  return (t.isContinent || keepUp(t)) ? full : Math.min(full, LOWERED_BRICKS);
+}
+/* data-centre bricks that do not take part in the selection fade to a third of their colour (set once per selection, not per frame) */
+const _dcc = new THREE.Color();
+function setDCFocus(list){
+  const keep = list && list.length ? new Set(list) : null;
+  DATA.datacentres.forEach((d, i) => { _dcc.setHex(OPERATOR_COLOR[d.operator]).offsetHSL(0, 0.08, 0.02); if (keep && !keep.has(d)) _dcc.multiplyScalar(0.35); dcMesh.setColorAt(i, _dcc); });
+  dcMesh.instanceColor.needsUpdate = true;
 }
 /* city towers: thin towers at a country's main cities, same height scale as country towers */
 const _cup = new THREE.Vector3(0,1,0), _ctmp = new THREE.Vector3(), _Z = new THREE.Matrix4().makeScale(0,0,0);
@@ -566,9 +620,9 @@ function resize(){
   if (wasMax || view.tDist > view.maxDist) view.tDist = view.maxDist;
   if (!state.built) view.dist = view.tDist;
 }
-const FLY_TILT = 45*deg;   // viewing angle off the tower's axis: side-on enough to read the bricks
+const FLY_TILT = 40*deg;   // viewing angle off the tower's axis: side-on enough to read the bricks, high enough to spread the city towers
 const FLY_FOCUS = 0.5;      // the tower's midpoint sits at the exact centre of the main area
-function fitDistFor(L){ return clamp(1 + 2.4*Math.max(L, 0.08), view.minDist, view.maxDist); }   // zoom so the whole tower spans about half the viewport height
+function fitDistFor(L){ return clamp(1 + 1.7*Math.max(L, 0.08), view.minDist, view.maxDist); }   // close in: the tower spans well over half the viewport and the city towers sit apart
 const _fq = new THREE.Quaternion(), _fqy = new THREE.Quaternion(), _fqx = new THREE.Quaternion(), _fb = new THREE.Vector3(), _fn = new THREE.Vector3();
 function flyTo(ref, dist, towerLen){
   const ty = -ref.lon*deg; let dy = ty - view.tYaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy));
@@ -754,6 +808,7 @@ window.addEventListener("keydown", e => {
   else if (e.key === "p" || e.key === "P"){ setLayer(state.layer === "power" ? "none" : "power"); }
   else if (e.key === "d" || e.key === "D"){ setLayer(state.layer === "data" || state.layer === "dataShare" ? "none" : "data"); }
   else if (e.key === "s" || e.key === "S"){ sfx.set(!sfx.on); if (sfx.on) sfx.pin(); }
+  else if (e.key === "r" || e.key === "R"){ setRoutes(!routesOn); }
   else if (e.shiftKey && e.key.startsWith("Arrow")){ panBy(e.key==="ArrowLeft"?-ps:e.key==="ArrowRight"?ps:0, e.key==="ArrowUp"?-ps:e.key==="ArrowDown"?ps:0); touchUI(); }
   else if (e.key === "ArrowLeft"){ view.tYaw -= step; touchUI(); }
   else if (e.key === "ArrowRight"){ view.tYaw += step; touchUI(); }
@@ -948,6 +1003,6 @@ export {
   cityObjects, showCities, clearArcs, showArcs, stepArcs, ring, placeRing, placeRingAt,
   applyView, panBy, zoomAt, isNarrow, panelWidth, measureCanvas, resize, fitDistFor, flyTo,
   toScreen, castAt, hitTest, endPointer, dragging, lastPointerType, markSelected, stepHover, showTip, setHover,
-  setMode, resetView, eggs, updateCompass,
+  setMode, resetView, eggs, updateCompass, setDCFocus, setRoutes,
   quality, setQuality, contact, BRICKS_PER_INDEX_POINT, noiseTex, studTex, discTex, arcCount
 };

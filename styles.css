@@ -57,7 +57,7 @@
   .btn.primary:hover{background:#fff}
 
   /* ---------- side panel ---------- */
-  #panel{position:fixed;top:24px;right:24px;bottom:24px;width:var(--panel-w);z-index:6;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:22px;background:var(--panel);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);box-shadow:var(--shadow);transition:transform .35s var(--ease),width .35s var(--ease);overflow:hidden}
+  #panel{position:fixed;top:72px;right:24px;bottom:24px;width:var(--panel-w);z-index:6;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:22px;background:var(--panel);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);box-shadow:var(--shadow);transition:transform .35s var(--ease),width .35s var(--ease);overflow:hidden}
   #panel .head{display:flex;align-items:center;gap:6px;padding:14px 14px 0 14px}
   #tabs{display:flex;gap:2px;flex:1;padding:2px;border-radius:12px;background:var(--fill)}
   .tab{flex:1;padding:8px 6px;border-radius:10px;font-size:14px;font-weight:500;color:var(--muted);border:0;transition:all .25s var(--ease)}
@@ -235,8 +235,7 @@
   #intro{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;overflow-y:auto;overscroll-behavior:contain;padding:12px 0;background:radial-gradient(ellipse at center,rgba(7,8,12,.55),rgba(7,8,12,.88));backdrop-filter:blur(2px);opacity:0;animation:introIn .6s var(--ease) .2s forwards;transition:opacity .4s var(--ease)}
   #intro.out{opacity:0!important;pointer-events:none}
   body.intro #title,body.intro #hint{opacity:0;transition:none}
-  .ibox{position:relative;max-width:720px;width:calc(100% - 48px);margin:auto;padding:28px 40px 26px;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:#0b0b0d;box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:left;overflow:hidden}
-  .ibox .kicker{padding-bottom:14px;border-bottom:var(--rule);margin-bottom:22px;display:flex;justify-content:space-between;opacity:0;animation:rise .5s var(--ease) .3s forwards}
+  .ibox{position:relative;max-width:720px;width:calc(100% - 48px);margin:auto;padding:34px 40px 26px;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:#0b0b0d;box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:left;overflow:hidden}
   .ibox h2{font-size:clamp(40px,5.6vw,68px);line-height:.98;opacity:0;animation:rise .6s var(--ease) .4s forwards}
   .ibox .hero{font-family:var(--serif);font-size:clamp(22px,2.5vw,31px);line-height:1.22;letter-spacing:0;margin:20px 0 0;color:var(--text);overflow-wrap:anywhere;opacity:0;animation:rise .6s var(--ease) .7s forwards}
   .ibox .hero b{font-weight:400;font-style:italic;color:#efe9d6}
@@ -251,9 +250,6 @@
   .btn.ghost{background:transparent;border:0;color:var(--muted);padding:11px 8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
   .btn.ghost:hover{color:var(--text);background:transparent}
   .ibox .byline{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:24px;padding-top:12px;border-top:var(--rule);opacity:0;animation:rise .5s var(--ease) 1.5s forwards}
-  .ibar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.06)}
-  .ibar i{display:block;height:100%;width:100%;background:rgba(255,255,255,.5);transform-origin:left;transform:scaleX(0)}
-  #intro.timing .ibar i{transform:none;animation:shrink 9s linear forwards}
   @keyframes introIn{to{opacity:1}}
   @keyframes shrink{to{transform:scaleX(0)}}
   @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -269,6 +265,31 @@
   .est sup{font-size:.65em;color:var(--muted);margin-left:2px;font-weight:500}
   #toast{position:fixed;left:50%;bottom:28px;z-index:30;transform:translate(-50%,16px);opacity:0;pointer-events:none;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:14px;background:rgba(28,28,30,.92);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);font-size:14px;color:var(--text);transition:opacity .25s var(--ease),transform .25s var(--ease);overflow-wrap:anywhere}
   #toast.show{opacity:1;transform:translate(-50%,0)}
+  /* labels that ride on the arc ends: which data centre (operator · city · why) or which country; a caption at the selected tower */
+  #arcLabels{position:fixed;inset:0;z-index:5;pointer-events:none}   /* under the panel and the sheet */
+  .arclabel{position:absolute;left:0;top:0;display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:4px;background:rgba(14,14,17,.86);border:1px solid rgba(255,255,255,.14);font-family:var(--sans);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text);white-space:nowrap;opacity:0;transition:opacity .25s var(--ease);will-change:transform}
+  .arclabel i{width:7px;height:7px;border-radius:2px;display:inline-block;box-shadow:inset 0 -1px 0 rgba(0,0,0,.3)}
+  .arclabel.dim{opacity:.45!important}
+  .arclabel.caption{font-family:var(--serif);font-style:italic;text-transform:none;letter-spacing:0;font-size:13px;color:rgba(245,245,247,.85);background:transparent;border:0;padding:0}
+  @media (max-width:600px){ .arclabel{font-size:9px;padding:3px 6px} .arclabel.caption{font-size:12px} }
+  /* page share: top right, above the panel; native share sheet where there is one, otherwise copy the link */
+  #siteShare{position:fixed;top:18px;right:24px;z-index:9;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;background:#efe9d6;color:#0b0b0d;border:0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+  #siteShare:hover{background:#fff}
+  @media (max-width:900px) and (orientation:portrait),(max-width:600px){ #siteShare{top:calc(env(safe-area-inset-top,0px) + 14px);right:14px;padding:9px 14px;font-size:11px} }
+  /* legend entries filter the globe: the top countries for that provider stay up, the rest drop to one brick */
+  #legend li[data-prov],#v-key .keywrap li[data-prov]{cursor:pointer;border-radius:6px;padding:1px 4px;margin:-1px -4px;transition:background .2s var(--ease)}
+  #legend li[data-prov]:hover,#v-key .keywrap li[data-prov]:hover{background:rgba(255,255,255,.07)}
+  #legend li[data-prov].on,#v-key .keywrap li[data-prov].on{background:rgba(255,255,255,.12);color:#fff}
+  body.filtering #legend li[data-prov]:not(.on){opacity:.5}
+  .filterbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 10px;padding:8px 10px;border-radius:10px;background:var(--fill);font-size:12px;color:var(--muted)}
+  .filterbar[hidden]{display:none}
+  .filterbar .lnk{font-size:12px;color:var(--text);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+  /* floating share button in the globe area while a country is selected (phones: above the sheet) */
+  #shareFab{position:fixed;top:18px;right:calc(var(--panel-w) + 48px + 16px);z-index:9;display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:999px;background:#efe9d6;color:#0b0b0d;border:0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.45);transition:transform .25s var(--ease),opacity .25s var(--ease)}
+  #shareFab[hidden]{display:none}
+  #shareFab:hover{background:#fff}
+  body.pcol #shareFab{right:calc(108px + 48px)}
+  @media (max-width:900px) and (orientation:portrait),(max-width:600px){ #shareFab{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 58px);left:auto;right:14px;transform:none;padding:9px 14px;font-size:11px} #shareFab:hover{transform:none} }
   #tip{position:fixed;left:0;top:0;z-index:8;pointer-events:none;opacity:0;transform:translate(-50%,calc(-100% - 18px));padding:10px 14px;border-radius:14px;background:rgba(28,28,30,.86);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);transition:opacity .2s var(--ease);white-space:nowrap}
   #tip b{display:block;font-size:16px;font-weight:600;margin-bottom:3px}
   #tip span{font-size:13px;color:var(--muted)}

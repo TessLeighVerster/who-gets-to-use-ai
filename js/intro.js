@@ -3,7 +3,7 @@
    the scene (opening a country card, focusing search) is queued as `intro.pending` and run by js/main.js once the
    first frame has rendered. The hero sentence itself is static HTML; main.js re-renders it from the data (HERO_STAT).
 
-   URL switches: ?intro=0 or ?nointro skips the intro, ?intro=1 forces it even if it was seen this session.
+   The overlay does not close by itself. URL switches: ?intro=0 or ?nointro skips the intro, ?intro=1 forces it even if it was seen this session.
    Storage: one sessionStorage flag, "introSeen". No cookies, no network. */
 import { detectCountry } from "./geo.js";
 import { COUNTRY_NAMES } from "../data/countryNames.js";
@@ -27,10 +27,7 @@ function dismiss(action){
   if (action) emit(action);
 }
 function emit(action){ pending = action; listeners.forEach(fn => fn()); }
-let timer = 0;
-function startTimer(ms = 9400){   // called when the 3D scene is on screen, so a slow load does not eat the reading time
-  if (done || timer) return; timer = setTimeout(() => dismiss(), ms); el.classList.add("timing");
-}
+function startTimer(){}   // no auto-dismiss: the overlay stays until the visitor picks a country, explores, or presses Escape
 
 const seen = (() => { try { return sessionStorage.getItem("introSeen") === "1"; } catch (_) { return false; } })();
 const skip = params.get("intro") === "0" || params.has("nointro") || params.has("country") || (params.get("intro") !== "1" && seen);   // a deep link goes straight to its country

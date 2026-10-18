@@ -102,7 +102,8 @@ const OUT = process.argv[2] || "behaviour.json", BASE = process.argv[3];
   // 8) counters run, sound toggle, ticker hide
   snap.live = { promptsNonZero: (await one("#prompts")) !== "0", spendTotalFormat: /^\$[\d,.]+( [MB])?$/.test(await one("#spendTotal")) };
   await page.click("#soundToggle"); snap.sound = { pressedAfterClick: await page.$eval("#soundToggle", e => e.getAttribute("aria-pressed")) }; await page.click("#soundToggle");
-  await page.click("#tickerHide"); snap.ticker = { noticker: await page.$eval("body", b => b.classList.contains("noticker")) }; await page.click("#tickerShow");
+  snap.ticker = { hiddenByDefault: await page.$eval("body", b => b.classList.contains("noticker")) };
+  await page.click("#tickerShow"); snap.ticker.shownAfterToggle = !(await page.$eval("body", b => b.classList.contains("noticker"))); await page.click("#tickerHide");
 
   // 9) ?nointro
   await page.goto(srv.url + "/index.html?nointro", { waitUntil: "load", timeout: 90000 }); await frames(3); await new Promise(r => setTimeout(r, 600));
