@@ -1,7 +1,7 @@
 {
   "name": "Who gets to build with AI?",
   "short_name": "Who builds AI",
-  "description": "A Lego globe of AI access: every tower is a country, its height how much people there use AI, its colours whose models they use.",
+  "description": "Who gets to build with AI? A Lego globe of AI access: every tower is a country, its height how much people there build with AI, its colours whose models they use.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#15171c",

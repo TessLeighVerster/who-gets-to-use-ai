@@ -153,7 +153,7 @@ const studTex = canvasTexture(512, (g, s) => { g.fillStyle = "#b4b4b4"; g.fillRe
     g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, r, 0, Math.PI*2); g.fill(); } }, [48, 24]);
 const discTex = canvasTexture(64, (g, s) => { const grd = g.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2); grd.addColorStop(0, "rgba(255,255,255,1)"); grd.addColorStop(0.55, "rgba(255,255,255,0.55)"); grd.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = grd; g.fillRect(0, 0, s, s); });
 
-/* sky: a field of stars in three sizes (the largest as four-point sparkles) and a soft milky-way band, five Points draw calls, generated once with a seeded PRNG */
+/* sky: a field of stars in four sizes (the largest as four-point sparkles) and a soft milky-way band, six Points draw calls, generated once with a seeded PRNG */
 {
   const starTex = canvasTexture(32, (g, sz) => { const grd = g.createRadialGradient(sz/2, sz/2, 0, sz/2, sz/2, sz/2); grd.addColorStop(0, "rgba(255,255,255,1)"); grd.addColorStop(0.4, "rgba(255,255,255,0.55)"); grd.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = grd; g.fillRect(0, 0, sz, sz); });
   starTex.wrapS = starTex.wrapT = THREE.ClampToEdgeWrapping;
@@ -176,14 +176,78 @@ const discTex = canvasTexture(64, (g, s) => { const grd = g.createRadialGradient
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
     const m = new THREE.Points(g, new THREE.PointsMaterial({color, size, sizeAttenuation:true, map, transparent:true, opacity, depthWrite:false})); m.frustumCulled = false; m.renderOrder = -1; return m;
   };
-  scene.add(field(1800, 0, 0.4, 0.8, 0xe8ecf4));          // stars
-  scene.add(field(400, 0, 0.85, 0.85, 0xffffff));            // a few larger, brighter ones
-  scene.add(field(80, 0, 2.6, 0.85, 0xffffff, sparkTex));  // sparse four-point sparkles
+  scene.add(field(3200, 0, 0.2, 0.5, 0xdfe4ee));           // dust: many tiny faint stars
+  scene.add(field(3000, 0, 0.32, 0.8, 0xe8ecf4));          // stars
+  scene.add(field(650, 0, 0.7, 0.85, 0xffffff));            // larger, brighter ones
+  scene.add(field(110, 0, 2.2, 0.85, 0xffffff, sparkTex));  // sparse four-point sparkles
   scene.add(field(5000, 0.16, 0.22, 0.09, 0xcfd6e6));       // the band: many faint, slightly larger points along a tilted great circle
   scene.add(field(900, 0.07, 0.10, 0.3, 0xe8e4d8));         // brighter core of the band
 }
 
 /* baseplate: a deep blue-charcoal plate with a low-contrast stud pattern (texture, not geometry) */
+/* shooting stars: a pool of three gradient streaks far out in the sky, each a screen-aligned quad lying along its path,
+   fired at random moments (every 2.5–9 s) in front of the camera. Off for prefers-reduced-motion and hidden tabs. */
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const shooting = { pool: [], next: 0 };
+{
+  const streakTex = canvasTexture(128, (g, sz) => {
+    const h = g.createLinearGradient(0, 0, sz, 0); h.addColorStop(0, "rgba(255,255,255,0)"); h.addColorStop(0.72, "rgba(255,255,255,0.5)"); h.addColorStop(0.95, "rgba(255,255,255,1)"); h.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = h; g.fillRect(0, 0, sz, sz);
+    const v = g.createLinearGradient(0, 0, 0, sz); v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(0.5, "rgba(0,0,0,1)"); v.addColorStop(1, "rgba(0,0,0,0)");
+    g.globalCompositeOperation = "destination-in"; g.fillStyle = v; g.fillRect(0, 0, sz, sz);
+  });
+  streakTex.wrapS = streakTex.wrapT = THREE.ClampToEdgeWrapping;
+  const geo = new THREE.PlaneGeometry(1, 1);
+  for (let i = 0; i < 3; i++){
+    const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: streakTex, color: 0xffffff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    m.visible = false; m.renderOrder = -1; m.frustumCulled = false; scene.add(m);
+    shooting.pool.push({ m, t0: 0, dur: 1, p0: new THREE.Vector3(), d: new THREE.Vector3(), len: 1, travel: 1 });
+  }
+}
+const _sf = new THREE.Vector3(), _sr = new THREE.Vector3(), _su = new THREE.Vector3(), _sh = new THREE.Vector3(), _sm = new THREE.Vector3();
+function cameraBasis(){ camera.getWorldDirection(_sf); _sr.crossVectors(_sf, camera.up).normalize(); _su.crossVectors(_sr, _sf).normalize(); }
+const _sg = new THREE.Vector3(), _s0 = new THREE.Vector3(), _s1 = new THREE.Vector3();
+function unprojectAt(sx, sy, D, out){   // the point D units along the ray through client pixel (sx, sy)
+  out.set((sx - VX)/VW*2 - 1, 1 - (sy - VY)/VH*2, 0.5).unproject(camera).sub(camera.position).normalize();
+  return out.multiplyScalar(D).add(camera.position);
+}
+function fireShootingStar(now){
+  const s = shooting.pool.find(s => !s.m.visible); if (!s) return;
+  /* pick the path in screen space so it lands in open sky: inside the main area (beside the panel, above the sheet)
+     and clear of the globe's disc; then push both ends out to depth D */
+  const pw = isNarrow() ? 0 : panelWidth(), areaW = VW - pw, areaH = isNarrow() ? VH*0.55 : VH*0.8;
+  toScreen(_sg.set(0,0,0)); const gr = R / (camera.position.length() * Math.tan(camera.fov*Math.PI/360)) * VH/2 * 1.12 + 30;
+  const clear = (x, y) => x > VX + 10 && x < VX + areaW - 10 && y > VY + 10 && y < VY + areaH && Math.hypot(x - _sg.x, y - _sg.y) > gr;
+  let ok = false, x0 = 0, y0 = 0, x1 = 0, y1 = 0;
+  for (let i = 0; i < 12 && !ok; i++){
+    x0 = VX + Math.random()*areaW; y0 = VY + Math.random()*areaH;
+    const ang = (Math.random() < 0.5 ? 0 : Math.PI) + (Math.random() - 0.5)*0.9, len = 160 + Math.random()*260;   // shallow, left or right
+    x1 = x0 + Math.cos(ang)*len; y1 = y0 + Math.abs(Math.sin(ang))*len*0.7;                                            // and a little downwards
+    ok = clear(x0, y0) && clear(x1, y1) && clear((x0+x1)/2, (y0+y1)/2);
+  }
+  if (!ok) return;
+  const D = 32; unprojectAt(x0, y0, D, _s0); unprojectAt(x1, y1, D, _s1);
+  s.p0.copy(_s0); s.d.subVectors(_s1, _s0); s.travel = s.d.length(); s.d.normalize();
+  s.len = Math.min(s.travel*0.6, 1.4 + Math.random()*1.4); s.dur = 500 + Math.random()*450; s.t0 = now;
+  s.m.visible = true;
+}
+function stepSky(now){
+  if (reduceMotion || document.hidden) return;
+  if (!shooting.next) shooting.next = now + 1500 + Math.random() * 4000;
+  if (now >= shooting.next){ fireShootingStar(now); shooting.next = now + 2500 + Math.random() * 6500; }
+  let any = false;
+  for (const s of shooting.pool){
+    if (!s.m.visible) continue;
+    const k = (now - s.t0) / s.dur; if (k >= 1){ s.m.visible = false; continue; }
+    if (!any){ cameraBasis(); any = true; }
+    _sh.copy(s.p0).addScaledVector(s.d, s.travel * k);                     // head
+    _sm.copy(_sh).addScaledVector(s.d, -s.len * 0.5);                       // middle of the streak
+    s.m.position.copy(_sm); s.m.quaternion.copy(camera.quaternion);
+    s.m.rotateZ(Math.atan2(s.d.dot(_su), s.d.dot(_sr)));                    // lie along the path in the screen plane
+    s.m.scale.set(s.len, 0.14, 1);
+    s.m.material.opacity = Math.sin(Math.PI * k) * 0.95;
+  }
+}
 const plateMat = new THREE.MeshStandardMaterial({color:0x434957, roughness:0.9, metalness:0, roughnessMap: quality.tier === "high" ? studTex : null, bumpMap: quality.tier === "high" ? studTex : null, bumpScale:0.0022});
 const globe = new THREE.Mesh(new THREE.SphereGeometry(R, 96, 64), plateMat);
 world.add(globe);
@@ -1036,7 +1100,7 @@ export {
   R, MAX_BRICKS, DC_BRICK, CITY_BRICK, CITY_SLOTS,
   LAYERS, setLayer, setPowerMap, landDots, dcMesh,
   towers, cityTowers, bricks, studs, brickColors, targetBricks, animateTower, stepTowers, stepFocus, setFocus, setTowerTint, focus, retarget,
-  cityObjects, showCities, clearArcs, showArcs, stepArcs, ring, placeRing, placeRingAt,
+  cityObjects, showCities, clearArcs, showArcs, stepArcs, stepSky, fireShootingStar, shooting, ring, placeRing, placeRingAt,
   applyView, panBy, zoomAt, isNarrow, panelWidth, measureCanvas, resize, fitDistFor, flyTo,
   toScreen, castAt, hitTest, endPointer, dragging, lastPointerType, markSelected, stepHover, showTip, setHover,
   setMode, resetView, eggs, updateCompass, setDCFocus, setRoutes,

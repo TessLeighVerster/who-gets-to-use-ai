@@ -89,7 +89,7 @@ function frame(now){
   stepHover(now);
   // ring pulse, halos, counters
   if (ring.visible){ const p = (now - ring.userData.t0)/1000; const s = ring.userData.base; const pulse = s*(1+0.12*Math.sin(p*3)); ring.scale.set(pulse, pulse, pulse); ring.material.opacity = 0.65+0.3*Math.sin(p*3); }
-  stepArcs(now);
+  stepArcs(now); S.stepSky(now);
   tickCounters(now); updateCompass();
   renderer.render(scene, camera);
   if (!ready){ ready = true; document.body.classList.add("ready"); setTimeout(() => { const ph = $("#placeholder"); if (ph) ph.remove(); }, 700); intro.startTimer(); applyUrlState(); runPending(); }   // the real scene is on screen: drop the placeholder, run what the intro queued
