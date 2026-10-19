@@ -6,6 +6,7 @@
    The overlay does not close by itself. URL switches: ?intro=0 or ?nointro skips the intro, ?intro=1 forces it even if it was seen this session.
    Storage: one sessionStorage flag, "introSeen". No cookies, no network. */
 import { detectCountry } from "./geo.js";
+import { track } from "./analytics.js";
 import { COUNTRY_NAMES } from "../data/countryNames.js";
 
 const $ = s => document.querySelector(s);
@@ -44,14 +45,14 @@ $("#heroStat").addEventListener("click", e => {
   const a = e.target.closest("a"); if (!a) return;
   e.preventDefault();
   if (a.dataset.iso) dismiss({ select: a.dataset.iso });
-  else if (a.id === "heroSrc"){ history.replaceState(null, "", "?panel=methodology"); window.dispatchEvent(new CustomEvent("open-panel", { detail: "methodology" })); dismiss(); }   // TODO(methodology panel): listen for this event and open it
+  else if (a.id === "heroSrc"){ track("methodology"); history.replaceState(null, "", "?panel=methodology"); window.dispatchEvent(new CustomEvent("open-panel", { detail: "methodology" })); dismiss(); }   // TODO(methodology panel): listen for this event and open it
 });
 // beat 3: the call to action names the visitor's own country when the time zone or browser language gives one away
 const iso = detectCountry(new Set(Object.keys(COUNTRY_NAMES)));
 intro.countryIso = iso;
-if (iso){ go.textContent = `See ${COUNTRY_NAMES[iso]} →`; go.addEventListener("click", () => dismiss({ select: iso })); labelMiddleTower(iso); }
-else { go.textContent = "See where you stand →"; go.addEventListener("click", () => dismiss({ search: true })); }
-$("#introExplore").addEventListener("click", () => dismiss());
+if (iso){ go.textContent = `See ${COUNTRY_NAMES[iso]} →`; go.addEventListener("click", () => { track("intro-see-country"); dismiss({ select: iso }); }); labelMiddleTower(iso); }
+else { go.textContent = "See where you stand →"; go.addEventListener("click", () => { track("intro-see-country"); dismiss({ search: true }); }); }
+$("#introExplore").addEventListener("click", () => { track("intro-explore"); dismiss(); });
 el.addEventListener("click", e => { if (e.target === el) dismiss(); });
 window.addEventListener("keydown", e => { if (e.key === "Escape") dismiss(); });
 go.dataset.ready = "1"; performance.mark("intro-wired");   // tools/intro-perf.mjs reads the mark: the overlay is interactive from here on

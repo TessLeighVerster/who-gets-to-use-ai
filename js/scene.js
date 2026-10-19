@@ -8,6 +8,7 @@ import { DATA, CONTINENTS, CONT } from "./model.js";
 import { state, view, COARSE } from "./state.js";
 import { sfx } from "./sfx.js";
 import { writeUrlState } from "./urlState.js";
+import { track } from "./analytics.js";
 import { createArcs } from "./arcs.js";
 import { select, selectDC, focusCity, syncSheet, searchEl, toggleTicker } from "./panel.js";
 
@@ -334,6 +335,7 @@ let landDots;
 
 function setLayer(name, quiet){
   if (!LAYERS[name]) name = "none";
+  if (name !== "none" && name !== state.layer) track("layer-" + name);
   state.layer = name; writeUrlState({ layer: name });
   landDots.userData.applySkin(name === "none" ? "plain" : name);
   const group = name === "dataShare" ? "data" : name;

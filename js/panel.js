@@ -9,6 +9,7 @@ import { sfx } from "./sfx.js";
 import { detectCountry } from "./geo.js";
 import { shareCountry, toast } from "./shareCard.js";
 import { writeUrlState } from "./urlState.js";
+import { track, trackCountry } from "./analytics.js";
 import { MAX_BRICKS, DC_BRICK, CITY_BRICK, CITY_SLOTS, cityTowers, brickColors, cityObjects, showCities, setFocus, setTowerTint, clearArcs, showArcs, placeRing, placeRingAt, flyTo, fitDistFor, isNarrow, resize, setMode, markSelected, retarget, setDCFocus } from "./scene.js";
 
 if (COARSE){ const sub = $("#v-usage p.sub"); sub.textContent = sub.textContent.replace("Click", "Tap"); }
@@ -32,6 +33,7 @@ $("#panel").addEventListener("click", e => { if (isNarrow() && performance.now()
 /* tabs */
 function syncSheet(){ const open = isNarrow() && !$("#panel").classList.contains("strip"); document.body.classList.toggle("sheet-open", open); resize(); }
 function showTab(name){
+  if (name !== state.tab) track("tab-" + name);
   state.tab = name; writeUrlState({ tab: name });
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
   document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === "v-"+name));
@@ -150,6 +152,7 @@ document.addEventListener("click", e => { const li = e.target.closest("li[data-p
 $("#filterClear").addEventListener("click", () => setProviderFilter(null));
 /* page share: the native share sheet with the site link where there is one; otherwise copy the link */
 $("#siteShare").addEventListener("click", async () => {
+  track("share-site");
   const url = "https://whogetstobuildwithai.com/" + (state.selected && !state.selected.isContinent ? "c/" + state.selected.iso + "/" : ""), title = "Who gets to build with AI?";
   const text = state.selected && !state.selected.isContinent ? `Here's where ${state.selected.name} stands on AI access. See yours:` : "A Lego globe of who gets to build with AI. Every tower is a country.";
   if (navigator.share){ try { await navigator.share({ title, text, url }); return; } catch (e){ if (e && e.name === "AbortError") return; } }
@@ -231,6 +234,7 @@ function select(ref, keepTab, switching){
   if (prev && prev._tower && prev._tower !== state.hovered) setTowerTint(prev._tower, false);
   state.selected = ref || null; state.selectedDC = null; state.selectedCity = null;
   writeUrlState({ country: ref && !ref.isContinent ? ref.iso : null });
+  if (ref && !ref.isContinent && ref !== prev) trackCountry(ref.iso, ref.name);
   if (!ref || ref.isContinent){ showCities(null); setFocus(null); }
   document.querySelectorAll(".row.sel").forEach(el => el.classList.remove("sel"));
   clearArcs();
@@ -261,7 +265,7 @@ function select(ref, keepTab, switching){
   const wireDC = () => { cardEl.querySelectorAll("[data-dc]").forEach(b => b.onclick = () => selectDC(DATA.datacentres.find(d => d.name === b.dataset.dc)));
     cardEl.querySelectorAll("[data-city]").forEach(li => li.onclick = () => focusCity(ref, +li.dataset.city)); };
   wireDC();
-  const wireShare = () => { const sb = $("#shareBtn"); if (sb) sb.onclick = async () => { sb.disabled = true; try { await shareCountry(ref); } finally { sb.disabled = false; } }; };
+  const wireShare = () => { const sb = $("#shareBtn"); if (sb) sb.onclick = async () => { track("share-country"); sb.disabled = true; try { await shareCountry(ref); } finally { sb.disabled = false; } }; };
   wireShare();
   const pb = $("#pinBtn"); if (pb) pb.onclick = () => { togglePin(ref); cardEl.innerHTML = cardHTML(ref); $("#closeCard").onclick = () => select(null); $("#backBtn").onclick = () => select(null); $("#pinBtn").onclick = pb.onclick; wireDC(); wireShare(); };
 }
