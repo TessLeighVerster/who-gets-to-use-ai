@@ -14,7 +14,7 @@ const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").match
    the data (subscriptionShareOfIncome: a US$20/month plan as a share of GDP per capita per month, see data/countries.js). */
 export const HERO_STAT = {
   a: "NO", b: "CD",
-  text: (a, b) => `A $20 AI subscription costs <b>${a.subscriptionShareOfIncome}%</b> of monthly income per person in ${link(a)} and <b>${b.subscriptionShareOfIncome}%</b> in ${link(b)}.`
+  text: (a, b) => `A $20 AI plan costs <b>${a.subscriptionShareOfIncome}%</b> of monthly income in ${link(a)} and <b>${b.subscriptionShareOfIncome}%</b> in ${link(b)}.`
 };
 const link = c => `<a href="?country=${c.iso}" data-iso="${c.iso}">${c.name}</a>`;
 

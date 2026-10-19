@@ -153,13 +153,20 @@ const studTex = canvasTexture(512, (g, s) => { g.fillStyle = "#b4b4b4"; g.fillRe
     g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, r, 0, Math.PI*2); g.fill(); } }, [48, 24]);
 const discTex = canvasTexture(64, (g, s) => { const grd = g.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2); grd.addColorStop(0, "rgba(255,255,255,1)"); grd.addColorStop(0.55, "rgba(255,255,255,0.55)"); grd.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = grd; g.fillRect(0, 0, s, s); });
 
-/* sky: a sparse field of faint stars and a soft milky-way band, two Points draw calls, generated once with a seeded PRNG */
+/* sky: a field of stars in three sizes (the largest as four-point sparkles) and a soft milky-way band, five Points draw calls, generated once with a seeded PRNG */
 {
   const starTex = canvasTexture(32, (g, sz) => { const grd = g.createRadialGradient(sz/2, sz/2, 0, sz/2, sz/2, sz/2); grd.addColorStop(0, "rgba(255,255,255,1)"); grd.addColorStop(0.4, "rgba(255,255,255,0.55)"); grd.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = grd; g.fillRect(0, 0, sz, sz); });
   starTex.wrapS = starTex.wrapT = THREE.ClampToEdgeWrapping;
+  /* four-point sparkle for the handful of bright stars: a soft core plus two thin tapered spikes */
+  const sparkTex = canvasTexture(128, (g, sz) => {
+    const c = sz/2, core = g.createRadialGradient(c, c, 0, c, c, c*0.22); core.addColorStop(0, "rgba(255,255,255,1)"); core.addColorStop(0.5, "rgba(255,255,255,0.6)"); core.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = core; g.fillRect(0, 0, sz, sz);
+    for (const [x0,y0,x1,y1] of [[0,c,sz,c],[c,0,c,sz]]){ const lg = g.createLinearGradient(x0,y0,x1,y1); lg.addColorStop(0,"rgba(255,255,255,0)"); lg.addColorStop(0.3,"rgba(255,255,255,0.5)"); lg.addColorStop(0.5,"rgba(255,255,255,1)"); lg.addColorStop(0.7,"rgba(255,255,255,0.5)"); lg.addColorStop(1,"rgba(255,255,255,0)"); g.strokeStyle = lg; g.lineWidth = 3; g.beginPath(); g.moveTo(x0,y0); g.lineTo(x1,y1); g.stroke(); }
+  });
+  sparkTex.wrapS = sparkTex.wrapT = THREE.ClampToEdgeWrapping;
   let seed = 19; const rnd = () => (seed = (seed*48271)%2147483647)/2147483647;
   const gauss = () => (rnd()+rnd()+rnd()+rnd()-2)*0.86;
-  const field = (N, bandSigma, size, opacity, color) => {
+  const field = (N, bandSigma, size, opacity, color, map = starTex) => {
     const pos = new Float32Array(N*3), v = new THREE.Vector3(), tilt = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.95, 0.3, 0.4));
     for (let i = 0; i < N; i++){
       if (bandSigma){ const a = rnd()*Math.PI*2, lat = gauss()*bandSigma; v.set(Math.cos(a)*Math.cos(lat), Math.sin(lat), Math.sin(a)*Math.cos(lat)).applyQuaternion(tilt); }
@@ -167,9 +174,11 @@ const discTex = canvasTexture(64, (g, s) => { const grd = g.createRadialGradient
       v.multiplyScalar(30 + rnd()*8); pos.set([v.x, v.y, v.z], i*3);
     }
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-    const m = new THREE.Points(g, new THREE.PointsMaterial({color, size, sizeAttenuation:true, map:starTex, transparent:true, opacity, depthWrite:false})); m.frustumCulled = false; m.renderOrder = -1; return m;
+    const m = new THREE.Points(g, new THREE.PointsMaterial({color, size, sizeAttenuation:true, map, transparent:true, opacity, depthWrite:false})); m.frustumCulled = false; m.renderOrder = -1; return m;
   };
-  scene.add(field(1600, 0, 0.12, 0.38, 0xd8dde8));          // stars
+  scene.add(field(1800, 0, 0.4, 0.8, 0xe8ecf4));          // stars
+  scene.add(field(400, 0, 0.85, 0.85, 0xffffff));            // a few larger, brighter ones
+  scene.add(field(80, 0, 2.6, 0.85, 0xffffff, sparkTex));  // sparse four-point sparkles
   scene.add(field(5000, 0.16, 0.22, 0.09, 0xcfd6e6));       // the band: many faint, slightly larger points along a tilted great circle
   scene.add(field(900, 0.07, 0.10, 0.3, 0xe8e4d8));         // brighter core of the band
 }
@@ -546,6 +555,25 @@ function cityObjects(c){
     usageIndex: Math.round(c.usageIndex*rel*10)/10, activeUsers: pop*perCap*rel, providerShare:c.providerShare })).sort((a,b)=>b.usageIndex-a.usageIndex);
   return c._cityObjs;
 }
+/* a city that sits on its country's own point (a capital, a city state) would grow out of the middle of the country
+   tower; slide it sideways until it stands beside the tower, and beside any city tower already placed this round */
+const _nd = new THREE.Vector3(), _ne = new THREE.Vector3();
+function nudgeBeside(t, countryTower, placed){
+  const others = [countryTower, ...placed.map(city => city._tower).filter(Boolean)];
+  for (let pass = 0; pass < 4; pass++){
+    let moved = false;
+    for (const o of others){
+      if (!o) continue;
+      const minSep = (o.dims.w + CITY_BRICK.w) * 0.5 * 1.35;
+      _nd.subVectors(t.pos, o.pos); const d = _nd.length();
+      if (d >= minSep) continue;
+      if (d < 1e-5){ _ne.set(0,1,0); _nd.crossVectors(_ne, o.normal); if (_nd.lengthSq() < 1e-6) _nd.set(1,0,0); _nd.normalize(); }   // dead centre: step east
+      else { _nd.multiplyScalar(1/d); _nd.addScaledVector(o.normal, -_nd.dot(o.normal)).normalize(); }                                   // keep the step tangent to the plate
+      t.pos.copy(o.pos).addScaledVector(_nd, minSep).normalize().multiplyScalar(R); moved = true;
+    }
+    if (!moved) break;
+  }
+}
 function showCities(c){
   const now = performance.now(), list = c ? cityObjects(c).slice(0, CITY_SLOTS) : [];
   cityTowers.forEach((t,i) => {
@@ -553,7 +581,7 @@ function showCities(c){
     const city = list[i]; t.ref = city || null; t.cityOf = c || null;
     if (!city){ t.n = 0; return; }
     t.n = Math.max(1, Math.round(Math.min(120, city.usageIndex)/100*MAX_BRICKS));
-    latLonToVec(city.lat, city.lon, R, t.pos); t.normal.copy(t.pos).normalize(); t.quat.setFromUnitVectors(_cup, t.normal);
+    latLonToVec(city.lat, city.lon, R, t.pos); nudgeBeside(t, c._tower, list.slice(0, i)); t.normal.copy(t.pos).normalize(); t.quat.setFromUnitVectors(_cup, t.normal);
     const o = CITY_BRICK.w*0.25; [[-o,-o],[o,-o],[-o,o],[o,o]].forEach(([x,z],j) => t.studOffsets[j].copy(_ctmp.set(x,0,z).applyQuaternion(t.quat)));
     t.colors = brickColors(c, t.n); city._tower = t;
     t.colors.forEach((hex,k) => { const idx = t.brickStart+k; bricks.setColorAt(idx, _c.setHex(hex)); for (let j=0;j<4;j++) studs.setColorAt(idx*4+j, _c); });

@@ -27,7 +27,14 @@ function dismiss(action){
   if (action) emit(action);
 }
 function emit(action){ pending = action; listeners.forEach(fn => fn()); }
-function startTimer(){}   // no auto-dismiss: the overlay stays until the visitor picks a country, explores, or presses Escape
+function startTimer(){}
+/* the illustration's middle tower carries the visitor's country name (Norway and DR Congo already have their own towers) */
+function labelMiddleTower(iso){
+  if (iso === "NO" || iso === "CD") return;
+  const t = $("#introArtMid"), bg = $("#introArtMidBg"); if (!t || !bg) return;
+  t.textContent = COUNTRY_NAMES[iso].toUpperCase();
+  try { const b = t.getBBox(); bg.setAttribute("x", (b.x - 11).toFixed(1)); bg.setAttribute("width", (b.width + 22).toFixed(1)); } catch (_) {}
+}   // no auto-dismiss: the overlay stays until the visitor picks a country, explores, or presses Escape
 
 const seen = (() => { try { return sessionStorage.getItem("introSeen") === "1"; } catch (_) { return false; } })();
 const skip = params.get("intro") === "0" || params.has("nointro") || params.has("country") || (params.get("intro") !== "1" && seen);   // a deep link goes straight to its country
@@ -42,7 +49,7 @@ $("#heroStat").addEventListener("click", e => {
 // beat 3: the call to action names the visitor's own country when the time zone or browser language gives one away
 const iso = detectCountry(new Set(Object.keys(COUNTRY_NAMES)));
 intro.countryIso = iso;
-if (iso){ go.textContent = `See ${COUNTRY_NAMES[iso]} →`; go.addEventListener("click", () => dismiss({ select: iso })); }
+if (iso){ go.textContent = `See ${COUNTRY_NAMES[iso]} →`; go.addEventListener("click", () => dismiss({ select: iso })); labelMiddleTower(iso); }
 else { go.textContent = "See where you stand →"; go.addEventListener("click", () => dismiss({ search: true })); }
 $("#introExplore").addEventListener("click", () => dismiss());
 el.addEventListener("click", e => { if (e.target === el) dismiss(); });

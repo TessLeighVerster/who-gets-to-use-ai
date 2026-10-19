@@ -17,7 +17,7 @@
 <meta property="og:image" content="https://whogetstobuildwithai.com/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Who gets to build with AI? The Norway tower on the Lego globe: a $20 AI subscription costs 0.3% of monthly income per person in Norway and 29.7% in DR Congo.">
+<meta property="og:image:alt" content="Who gets to build with AI? Building with AI needs power, data, money and somewhere nearby to run it. Most of the world doesn’t have all four. Towers for Norway, South Africa and DR Congo.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Who gets to build with AI?">
 <meta name="twitter:description" content="A Lego globe of AI access. Every tower is a country: height is AI usage per person, colour is whose models people use.">
@@ -44,7 +44,7 @@
   <button id="tickerShow" title="Show counter (T)">Show prompt counter</button>
 </div>
 <div id="hint">drag to rotate · right-drag or shift-drag to move · scroll to zoom · click a tower or data centre</div>
-<footer id="credit">Built with love and concern · <a href="https://github.com/TessLeighVerster" target="_blank" rel="noopener">Tessa Verster<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a></footer>
+<footer id="credit">Built with love and concern · <a href="https://www.linkedin.com/in/tessa-verster/" target="_blank" rel="noopener">Tessa Verster</a></footer>
 
 <div id="legend">
   <div><h4>Model provider</h4><ul id="lg-prov"></ul></div>
@@ -127,7 +127,7 @@
     <div class="ph"><span id="pinsTitle">Pinned · same scale</span><button id="clearPins">clear</button></div>
     <svg id="pinsvg" viewBox="0 0 380 170" preserveAspectRatio="xMidYMax meet"></svg>
   </div>
-  <div class="note">Figures are illustrative estimates modelled from public sources, not live telemetry.<span class="credit-sm"> Built with love and concern · <a href="https://github.com/TessLeighVerster" target="_blank" rel="noopener">Tessa Verster</a></span></div>
+  <div class="note">Figures are illustrative estimates modelled from public sources, not live telemetry.<span class="credit-sm"> Built with love and concern · <a href="https://www.linkedin.com/in/tessa-verster/" target="_blank" rel="noopener">Tessa Verster</a></span></div>
 </aside>
 
 <div id="arcLabels" aria-hidden="true"></div>
@@ -137,12 +137,42 @@
 
 <div id="intro" role="dialog" aria-label="Welcome">
   <div class="ibox">
-    <figure class="thumb" aria-hidden="true"><img src="assets/intro-towers.webp" width="720" height="720" alt="" loading="eager" decoding="async"></figure>
-    <h2>Who gets to <i>build</i> with AI?</h2>
-    <p class="hero" id="heroStat">A $20 AI subscription costs <b>0.3%</b> of monthly income per person in <a href="?country=NO" data-iso="NO">Norway</a> and <b>29.7%</b> in <a href="?country=CD" data-iso="CD">DR Congo</a>. <a class="src" id="heroSrc" href="?panel=methodology" title="How this is worked out">source</a></p>
-    <p class="lead">Every tower is a country. Height is how much people there use AI. Colour is whose models they're using. Glowing bricks are data centres.</p>
-    <div class="cta"><button class="btn primary" id="introGo">See where you stand →</button><button class="btn ghost" id="introExplore">or explore the globe</button></div>
-    <div class="byline"><span>Sources</span><span>World Bank · Cable.co.uk · Anthropic Economic Index</span></div>
+    <div class="copy">
+      <div class="kicker">whogetstobuildwithai.com</div>
+      <h2>Who gets to <i>build</i> with AI?</h2>
+      <p class="lead open">Building with AI needs power, data, money and somewhere nearby to run it. Most of the world doesn’t have all four. This globe shows who does, country by country, city by city.</p>
+      <p class="hero" id="heroStat">A $20 AI plan costs <b>0.3%</b> of monthly income in <a href="?country=NO" data-iso="NO">Norway</a> and <b>29.7%</b> in <a href="?country=CD" data-iso="CD">DR Congo</a>. <a class="src" id="heroSrc" href="?panel=methodology">How this is measured</a></p>
+      <p class="lead">Every tower is a country. Its height is how much people there use AI. Its colours are whose models they use. Glowing bricks are data centres.</p>
+      <p class="lead outro">Explore, be curious, ask questions, and share what you find.</p>
+      <div class="cta"><button class="btn primary" id="introGo">See where you stand →</button><button class="btn ghost" id="introExplore">or explore the globe</button></div>
+      <div class="byline"><span>Sources · World Bank · Cable.co.uk · Anthropic Economic Index</span><span>Built with love and concern · <a href="https://www.linkedin.com/in/tessa-verster/" target="_blank" rel="noopener">Tessa Verster</a></span></div>
+    </div>
+    <div class="art"><svg id="introArt" viewBox="0 0 720 850" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+      <defs>
+        <pattern id="iaDots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="11" cy="11" r="3.6" fill="#fff" fill-opacity=".62"/></pattern>
+        <pattern id="iaGrain" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="1.4" fill="#0b0b0d" fill-opacity=".14"/></pattern>
+      </defs>
+      <rect width="720" height="850" fill="#2b5cf6"/><rect width="720" height="850" fill="url(#iaDots)"/>
+      <g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,Helvetica,Arial,sans-serif" font-size="12.5" font-weight="600" letter-spacing="2.2" fill="#0b0b0d">
+        <rect x="124" y="118" width="92" height="22" rx="3" fill="#f6cf6f"/><text x="170" y="134" text-anchor="middle">NORWAY</text>
+        <rect x="120" y="152" width="30" height="18" rx="3" fill="#f0ece2"/><rect x="190" y="152" width="30" height="18" rx="3" fill="#f0ece2"/>
+        <rect x="105" y="170" width="130" height="680" fill="#f0ece2"/><rect x="105" y="170" width="130" height="680" fill="url(#iaGrain)"/>
+        <path d="M118 242h104M118 314h104M118 440h104M118 512h104M118 584h104M118 735h104M118 807h104" stroke="#0b0b0d" stroke-width="2"/>
+        <rect x="105" y="350" width="130" height="45" fill="#0b0b0d"/><rect x="105" y="663" width="130" height="21" fill="#f6cf6f"/>
+        <rect id="introArtMidBg" x="275" y="372" width="150" height="22" rx="3" fill="#f6cf6f"/><text id="introArtMid" x="350" y="388" text-anchor="middle">SOUTH AFRICA</text>
+        <rect x="312" y="407" width="24" height="16" rx="3" fill="#e8714b"/><rect x="364" y="407" width="24" height="16" rx="3" fill="#e8714b"/>
+        <rect x="300" y="425" width="100" height="425" fill="#e8714b"/>
+        <path d="M312 495h76M312 565h76M312 660h76M312 705h76M312 760h76M312 815h76" stroke="#0b0b0d" stroke-width="2"/>
+        <rect x="300" y="595" width="100" height="25" fill="#0b0b0d"/>
+        <rect x="463" y="652" width="18" height="12" rx="2" fill="#f0ece2"/><rect x="499" y="652" width="18" height="12" rx="2" fill="#f0ece2"/>
+        <rect x="455" y="665" width="70" height="185" fill="#f0ece2"/><rect x="455" y="665" width="70" height="185" fill="url(#iaGrain)"/>
+        <path d="M465 735h50M465 805h50" stroke="#0b0b0d" stroke-width="2"/>
+        <rect x="545" y="750" width="110" height="22" rx="3" fill="#f6cf6f"/><text x="600" y="766" text-anchor="middle">DR CONGO</text>
+        <rect x="580" y="781" width="14" height="10" rx="2" fill="#e8714b"/><rect x="606" y="781" width="14" height="10" rx="2" fill="#e8714b"/>
+        <rect x="575" y="790" width="50" height="60" fill="#e8714b"/><path d="M583 835h34" stroke="#0b0b0d" stroke-width="2"/>
+        <circle cx="692" cy="836" r="8" fill="#f6cf6f"/>
+      </g>
+    </svg></div>
   </div>
 </div>
 

@@ -225,7 +225,7 @@
   #title h1,.ibox h2,.card .top h2,#v-card h2{font-family:var(--serif);font-weight:400;letter-spacing:-0.01em}
   #title h1 i,.ibox h2 i{font-style:italic;color:#efe9d6}
   .kicker,.byline{font-family:var(--sans);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-  /* intro: a claim, one line of explanation, one call to action. Shown over #placeholder before the 3D scene is ready. */
+  /* intro: headline, the claim, how to read the globe, one call to action; a flat tower illustration beside it. Shown over #placeholder before the 3D scene is ready. */
   #placeholder{position:fixed;inset:0;z-index:1;pointer-events:none;background:var(--bg);transition:opacity .6s var(--ease)}
   #placeholder i{position:absolute;left:50%;top:50%;width:min(78vmin,760px);height:min(78vmin,760px);transform:translate(-50%,-50%);border-radius:50%;
     background:radial-gradient(circle,rgba(200,205,215,.26) 1.2px,transparent 1.9px) 0 0/12px 12px,#262a33;
@@ -235,32 +235,40 @@
   #intro{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;overflow-y:auto;overscroll-behavior:contain;padding:12px 0;background:radial-gradient(ellipse at center,rgba(7,8,12,.55),rgba(7,8,12,.88));backdrop-filter:blur(2px);opacity:0;animation:introIn .6s var(--ease) .2s forwards;transition:opacity .4s var(--ease)}
   #intro.out{opacity:0!important;pointer-events:none}
   body.intro #title,body.intro #hint{opacity:0;transition:none}
-  .ibox{position:relative;max-width:980px;width:calc(100% - 48px);margin:auto;padding:34px 40px 26px;padding-right:calc(40px + 300px);border:1px solid rgba(255,255,255,.16);border-radius:10px;background:#0b0b0d;box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:left;overflow:hidden}
-  /* a real view of the towers, from the exhibit (rendered by tools/render-og.mjs), bleeding off the right edge */
-  .ibox .thumb{position:absolute;right:-70px;top:-40px;width:420px;height:420px;margin:0;pointer-events:none;opacity:0;animation:rise .8s var(--ease) .5s forwards;-webkit-mask:radial-gradient(circle at 50% 50%,#000 0 40%,rgba(0,0,0,.6) 58%,transparent 70%);mask:radial-gradient(circle at 50% 50%,#000 0 40%,rgba(0,0,0,.6) 58%,transparent 70%)}
-  .ibox .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-  .ibox h2{font-size:clamp(40px,5.6vw,68px);line-height:.98;opacity:0;animation:rise .6s var(--ease) .4s forwards;position:relative}
-  .ibox .hero{font-family:var(--sans);font-weight:500;font-size:clamp(20px,2.2vw,28px);line-height:1.25;letter-spacing:-0.015em;margin:20px 0 0;color:var(--text);overflow-wrap:anywhere;opacity:0;animation:rise .6s var(--ease) .7s forwards}
-  .ibox .hero b{font-weight:600;font-style:normal;color:#efe9d6}
+  /* the box: copy on the left, a flat illustration of three towers on a blue dot grid on the right (inline SVG #introArt, reused for og.png) */
+  .ibox{position:relative;max-width:1180px;width:calc(100% - 48px);margin:auto;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);border:1px solid rgba(255,255,255,.16);border-radius:10px;background:#0b0b0d;box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:left;overflow:hidden}
+  .ibox .copy{padding:44px 48px 34px;min-width:0}
+  .ibox .art{position:relative;background:#2b5cf6;min-height:460px;opacity:0;animation:introIn .8s var(--ease) .3s forwards}
+  .ibox .art svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .ibox .kicker{margin-bottom:16px;opacity:0;animation:rise .5s var(--ease) .3s forwards}
+  .ibox h2{font-size:clamp(40px,5.2vw,74px);line-height:.98;opacity:0;animation:rise .6s var(--ease) .4s forwards;position:relative}
+  .ibox .lead{font-family:var(--serif);font-size:clamp(18px,1.55vw,23px);color:rgba(245,245,247,.92);line-height:1.35;margin:22px 0 0;max-width:560px;opacity:0;animation:rise .6s var(--ease) .8s forwards}
+  .ibox .lead.open{animation-delay:.55s}
+  .ibox .lead.outro{margin-top:14px;animation-delay:1s}
+  .ibox .hero{font-family:var(--serif);font-weight:400;font-size:clamp(19px,1.7vw,25px);line-height:1.3;letter-spacing:0;margin:18px 0 0;padding:18px 0;border-top:var(--rule);border-bottom:var(--rule);color:var(--text);overflow-wrap:anywhere;opacity:0;animation:rise .6s var(--ease) .7s forwards}
+  .ibox .hero b{font-weight:400;font-style:italic;color:#f6cf6f}
   .ibox .hero a{color:var(--text);text-decoration:underline;text-decoration-color:rgba(255,255,255,.35);text-underline-offset:3px;text-decoration-thickness:1.5px;transition:text-decoration-color .2s}
   .ibox .hero a:hover{text-decoration-color:var(--text)}
-  .ibox .hero .src{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none;border:1px solid rgba(255,255,255,.2);border-radius:3px;padding:3px 7px;vertical-align:middle;margin-left:6px;white-space:nowrap}
-  .ibox .hero .src:hover{color:var(--text);border-color:rgba(255,255,255,.3)}
-  .ibox .lead{font-family:var(--sans);font-size:clamp(14px,1.2vw,16px);color:rgba(245,245,247,.68);line-height:1.4;margin:18px 0 22px;padding-top:18px;border-top:var(--rule);max-width:600px;opacity:0;animation:rise .6s var(--ease) 1s forwards}
-  .ibox .cta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;opacity:0;animation:rise .5s var(--ease) 1.3s forwards}
-  #introGo{padding:12px 22px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;border-radius:4px;background:#efe9d6;color:#0b0b0d;border-color:#efe9d6}
+  .ibox .hero .src{display:inline;font-family:var(--sans);font-weight:400;font-size:.6em;color:var(--muted);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3);text-underline-offset:3px;margin-left:4px;white-space:nowrap;vertical-align:baseline}
+  .ibox .hero .src:hover{color:var(--text);text-decoration-color:var(--text)}
+  .ibox .cta{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:34px;opacity:0;animation:rise .5s var(--ease) 1.2s forwards}
+  #introGo{padding:14px 26px;font-size:15px;letter-spacing:0;text-transform:none;font-weight:600;border-radius:4px;background:#f0ece2;color:#0b0b0d;border-color:#f0ece2}
   #introGo:hover{background:#fff}
-  .btn.ghost{background:transparent;border:0;color:var(--muted);padding:11px 8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+  .btn.ghost{background:transparent;border:0;color:var(--muted);padding:11px 4px;font-size:15px;letter-spacing:0;text-transform:none}
   .btn.ghost:hover{color:var(--text);background:transparent}
-  .ibox .byline{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:24px;padding-top:12px;border-top:var(--rule);opacity:0;animation:rise .5s var(--ease) 1.5s forwards}
+  .ibox .byline{display:block;margin-top:28px;line-height:1.5;opacity:0;animation:rise .5s var(--ease) 1.4s forwards}
+  .ibox .byline span{display:block}
+  .ibox .byline span+span{margin-top:8px}
+  .ibox .byline a{color:var(--text);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3);text-underline-offset:3px}
+  .ibox .byline a:hover{text-decoration-color:var(--text)}
   @keyframes introIn{to{opacity:1}}
   @keyframes shrink{to{transform:scaleX(0)}}
   @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  @media (max-width:900px){ .ibox{padding-right:40px} .ibox .thumb{position:relative;right:auto;top:auto;width:calc(100% + 80px);height:170px;margin:-34px -40px 10px;-webkit-mask:linear-gradient(#000 55%,transparent);mask:linear-gradient(#000 55%,transparent)} .ibox .thumb img{object-position:50% 40%} }
-  @media (max-width:700px){ .ibox{padding:22px 22px 22px;width:calc(100% - 28px)} .ibox .thumb{width:calc(100% + 44px);margin:-22px -22px 8px;height:150px} .ibox .lead{margin:14px 0 20px;padding-top:14px} }
-  @media (max-width:380px){ .ibox{padding:18px 16px 18px;width:calc(100% - 20px)} .ibox h2{font-size:36px} .ibox .hero{font-size:20px} .ibox .cta{gap:6px} #introGo{padding:10px 16px} .ibox .byline span:last-child{display:none} }
-  @media (max-height:520px){ #intro{padding:8px 0} .ibox{width:calc(100% - 24px);padding:14px 22px 12px} .ibox .kicker{margin-bottom:10px;padding-bottom:8px} .ibox h2{font-size:30px} .ibox .hero{font-size:18px;margin-top:8px} .ibox .lead{font-size:14px;margin:8px 0 12px;padding-top:8px} .ibox .byline{margin-top:10px} }
-  @media (prefers-reduced-motion:reduce){ #intro,.ibox .kicker,.ibox h2,.ibox .hero,.ibox .lead,.ibox .cta,.ibox .byline{animation:none;opacity:1} .ibar{display:none} }
+  @media (max-width:900px){ .ibox{grid-template-columns:1fr} .ibox .art{order:-1;min-height:0;height:230px} .ibox .copy{padding:26px 28px 26px} .ibox .lead{font-size:18px} .ibox .hero{font-size:20px} }
+  @media (max-width:700px){ .ibox{width:calc(100% - 28px)} .ibox .copy{padding:22px 22px 22px} .ibox .art{height:200px} .ibox .lead{margin-top:14px} .ibox .hero{margin-top:14px;padding:14px 0} .ibox .cta{margin-top:24px} }
+  @media (max-width:380px){ .ibox{width:calc(100% - 20px)} .ibox .copy{padding:18px 16px 18px} .ibox h2{font-size:36px} .ibox .lead{font-size:17px} .ibox .hero{font-size:19px} .ibox .cta{gap:6px} #introGo{padding:11px 18px;font-size:14px} .btn.ghost{font-size:14px} }
+  @media (max-height:520px){ #intro{padding:8px 0} .ibox{width:calc(100% - 24px)} .ibox .copy{padding:14px 22px 12px} .ibox .art{min-height:0} .ibox .kicker{margin-bottom:8px} .ibox h2{font-size:30px} .ibox .hero{font-size:17px;margin-top:8px;padding:8px 0} .ibox .lead{font-size:16px;margin-top:8px} .ibox .cta{margin-top:14px} .ibox .byline{margin-top:10px} }
+  @media (prefers-reduced-motion:reduce){ #intro,.ibox .kicker,.ibox h2,.ibox .hero,.ibox .lead,.ibox .cta,.ibox .byline,.ibox .art{animation:none;opacity:1} .ibar{display:none} }
   /* tooltip */
   /* personalised strip at the top of the visitor's own country card; .est is the shared "modelled estimate" styling (methodology panel uses it too) */
   .card .mine{margin:0 0 14px;padding:12px 14px;border-radius:14px;background:var(--fill);border:1px solid var(--line);font-size:14px;line-height:1.45;color:var(--text)}
