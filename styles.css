@@ -242,14 +242,14 @@
   .ibox .art svg{position:absolute;inset:0;width:100%;height:100%;display:block}
   .ibox .kicker{margin-bottom:16px;opacity:0;animation:rise .5s var(--ease) .3s forwards}
   .ibox h2{font-size:clamp(40px,5.2vw,74px);line-height:.98;opacity:0;animation:rise .6s var(--ease) .4s forwards;position:relative}
-  .ibox .lead{font-family:var(--serif);font-size:clamp(18px,1.55vw,23px);color:rgba(245,245,247,.92);line-height:1.35;margin:22px 0 0;max-width:560px;opacity:0;animation:rise .6s var(--ease) .8s forwards}
+  .ibox .lead{font-family:var(--sans);font-size:clamp(16px,1.3vw,19px);color:rgba(245,245,247,.92);line-height:1.5;margin:22px 0 0;max-width:560px;opacity:0;animation:rise .6s var(--ease) .8s forwards}
   .ibox .lead.open{animation-delay:.55s}
   .ibox .lead.outro{margin-top:14px;animation-delay:1s}
-  .ibox .hero{font-family:var(--serif);font-weight:400;font-size:clamp(19px,1.7vw,25px);line-height:1.3;letter-spacing:0;margin:18px 0 0;padding:18px 0;border-top:var(--rule);border-bottom:var(--rule);color:var(--text);overflow-wrap:anywhere;opacity:0;animation:rise .6s var(--ease) .7s forwards}
-  .ibox .hero b{font-weight:400;font-style:italic;color:#f6cf6f}
+  .ibox .hero{font-family:var(--sans);font-weight:400;font-size:clamp(17px,1.45vw,21px);line-height:1.45;letter-spacing:0;margin:18px 0 0;padding:18px 0;border-top:var(--rule);border-bottom:var(--rule);color:var(--text);overflow-wrap:anywhere;opacity:0;animation:rise .6s var(--ease) .7s forwards}
+  .ibox .hero b{font-weight:600;font-style:normal;color:#f6cf6f}
   .ibox .hero a{color:var(--text);text-decoration:underline;text-decoration-color:rgba(255,255,255,.35);text-underline-offset:3px;text-decoration-thickness:1.5px;transition:text-decoration-color .2s}
   .ibox .hero a:hover{text-decoration-color:var(--text)}
-  .ibox .hero .src{display:inline;font-family:var(--sans);font-weight:400;font-size:.6em;color:var(--muted);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3);text-underline-offset:3px;margin-left:4px;white-space:nowrap;vertical-align:baseline}
+  .ibox .hero .src{display:inline;font-family:var(--sans);font-weight:400;font-size:.7em;color:var(--muted);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3);text-underline-offset:3px;margin-left:4px;white-space:nowrap;vertical-align:baseline}
   .ibox .hero .src:hover{color:var(--text);text-decoration-color:var(--text)}
   .ibox .cta{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:34px;opacity:0;animation:rise .5s var(--ease) 1.2s forwards}
   #introGo{padding:14px 26px;font-size:15px;letter-spacing:0;text-transform:none;font-weight:600;border-radius:4px;background:#f0ece2;color:#0b0b0d;border-color:#f0ece2}
@@ -264,10 +264,10 @@
   @keyframes introIn{to{opacity:1}}
   @keyframes shrink{to{transform:scaleX(0)}}
   @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  @media (max-width:900px){ .ibox{grid-template-columns:1fr} .ibox .art{order:-1;min-height:0;height:230px} .ibox .copy{padding:26px 28px 26px} .ibox .lead{font-size:18px} .ibox .hero{font-size:20px} }
+  @media (max-width:900px){ .ibox{grid-template-columns:1fr} .ibox .art{order:-1;min-height:0;height:230px} .ibox .copy{padding:26px 28px 26px} .ibox .lead{font-size:16px} .ibox .hero{font-size:17px} }
   @media (max-width:700px){ .ibox{width:calc(100% - 28px)} .ibox .copy{padding:22px 22px 22px} .ibox .art{height:200px} .ibox .lead{margin-top:14px} .ibox .hero{margin-top:14px;padding:14px 0} .ibox .cta{margin-top:24px} }
-  @media (max-width:380px){ .ibox{width:calc(100% - 20px)} .ibox .copy{padding:18px 16px 18px} .ibox h2{font-size:36px} .ibox .lead{font-size:17px} .ibox .hero{font-size:19px} .ibox .cta{gap:6px} #introGo{padding:11px 18px;font-size:14px} .btn.ghost{font-size:14px} }
-  @media (max-height:520px){ #intro{padding:8px 0} .ibox{width:calc(100% - 24px)} .ibox .copy{padding:14px 22px 12px} .ibox .art{min-height:0} .ibox .kicker{margin-bottom:8px} .ibox h2{font-size:30px} .ibox .hero{font-size:17px;margin-top:8px;padding:8px 0} .ibox .lead{font-size:16px;margin-top:8px} .ibox .cta{margin-top:14px} .ibox .byline{margin-top:10px} }
+  @media (max-width:380px){ .ibox{width:calc(100% - 20px)} .ibox .copy{padding:18px 16px 18px} .ibox h2{font-size:36px} .ibox .lead{font-size:15px} .ibox .hero{font-size:16px} .ibox .cta{gap:6px} #introGo{padding:11px 18px;font-size:14px} .btn.ghost{font-size:14px} }
+  @media (max-height:520px){ #intro{padding:8px 0} .ibox{width:calc(100% - 24px)} .ibox .copy{padding:14px 22px 12px} .ibox .art{min-height:0} .ibox .kicker{margin-bottom:8px} .ibox h2{font-size:30px} .ibox .hero{font-size:15px;margin-top:8px;padding:8px 0} .ibox .lead{font-size:14px;margin-top:8px} .ibox .cta{margin-top:14px} .ibox .byline{margin-top:10px} }
   @media (prefers-reduced-motion:reduce){ #intro,.ibox .kicker,.ibox h2,.ibox .hero,.ibox .lead,.ibox .cta,.ibox .byline,.ibox .art{animation:none;opacity:1} .ibar{display:none} }
   /* tooltip */
   /* personalised strip at the top of the visitor's own country card; .est is the shared "modelled estimate" styling (methodology panel uses it too) */
