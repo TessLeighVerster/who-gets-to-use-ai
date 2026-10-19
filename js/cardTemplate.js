@@ -36,23 +36,26 @@ export function drawCard(ctx, m, W, H){
   ctx.fillStyle = muted; ctx.font = f(500, wide ? 20 : 24); ctx.fillText(`${m.continent} · ${m.dcCount} data centre${m.dcCount === 1 ? "" : "s"} shown`, P, P + (wide ? 120 : 160));
   // stats: three rows (square) or three columns (wide)
   const rows = m.stats, est = "est.";
+  // vertical rhythm of one stat block, from the label baseline: sub-label, big number, bars, comparison line
+  const L = wide ? { label: 17, sub: 14, subY: 20, big: 56, bigY: 84, barY: 104, bh: 10, gap: 10, cmp: 14, cmpY: 20, estPx: 16 }
+                 : { label: 22, sub: 18, subY: 24, big: 64, bigY: 92, barY: 108, bh: 12, gap: 8, cmp: 17, cmpY: 24, estPx: 18 };
   const drawStat = (s, x, y, w) => {
-    ctx.fillStyle = muted; ctx.font = f(500, wide ? 17 : 22); ctx.fillText(s.label, x, y);
-    ctx.font = f(400, wide ? 14 : 18); ctx.fillText(s.sub, x, y + (wide ? 20 : 26));
-    const big = wide ? 56 : 72; ctx.fillStyle = text; ctx.font = f(700, big);
-    const v = s.display(s.value); ctx.fillText(v, x, y + (wide ? 84 : 112));
-    if (s.est){ const vw = ctx.measureText(v).width; ctx.fillStyle = "rgba(245,245,247,0.5)"; ctx.font = f(600, wide ? 16 : 20); ctx.fillText(est, x + vw + 10, y + (wide ? 84 : 112)); }
+    ctx.fillStyle = muted; ctx.font = f(500, L.label); ctx.fillText(s.label, x, y);
+    ctx.font = f(400, L.sub); ctx.fillText(s.sub, x, y + L.subY);
+    ctx.fillStyle = text; ctx.font = f(700, L.big);
+    const v = s.display(s.value); ctx.fillText(v, x, y + L.bigY);
+    if (s.est){ const vw = ctx.measureText(v).width; ctx.fillStyle = "rgba(245,245,247,0.5)"; ctx.font = f(600, L.estPx); ctx.fillText(est, x + vw + 10, y + L.bigY); }
     // comparison bars: this country, then the top country, on a shared scale
-    const max = Math.max(s.value, s.top, 1e-9), by = y + (wide ? 104 : 136), bh = wide ? 10 : 14, bw = w;
-    ctx.fillStyle = line; ctx.fillRect(x, by, bw, bh); ctx.fillRect(x, by + bh + (wide ? 10 : 12), bw, bh);
+    const max = Math.max(s.value, s.top, 1e-9), by = y + L.barY, bh = L.bh, bw = w;
+    ctx.fillStyle = line; ctx.fillRect(x, by, bw, bh); ctx.fillRect(x, by + bh + L.gap, bw, bh);
     ctx.fillStyle = text; ctx.fillRect(x, by, Math.max(3, bw * s.value / max), bh);
-    ctx.fillStyle = "rgba(245,245,247,0.42)"; ctx.fillRect(x, by + bh + (wide ? 10 : 12), Math.max(3, bw * s.top / max), bh);
-    ctx.fillStyle = muted; ctx.font = f(500, wide ? 14 : 17);
-    const ty = by + bh * 2 + (wide ? 30 : 36);
+    ctx.fillStyle = "rgba(245,245,247,0.42)"; ctx.fillRect(x, by + bh + L.gap, Math.max(3, bw * s.top / max), bh);
+    ctx.fillStyle = muted; ctx.font = f(500, L.cmp);
+    const ty = by + bh * 2 + L.gap + L.cmpY;
     ctx.fillText(m.isTop ? `${m.name} is the top country` : `${m.topName} (top country): ${s.display(s.top)}${s.topEst ? " " + est : ""}${s.lowerIsBetter ? " · lower is better" : ""}`, x, ty);
   };
   if (wide){ const colW = (W - 2 * P - 2 * 40) / 3; rows.forEach((s, i) => drawStat(s, P + i * (colW + 40), P + 190, colW)); }
-  else { rows.forEach((s, i) => drawStat(s, P, P + 240 + i * 212, W - 2 * P)); }   // each block is ~200 px tall
+  else { rows.forEach((s, i) => drawStat(s, P, P + 232 + i * 212, W - 2 * P)); }   // a block is ~186 px tall (label top to comparison line), so 212 px apart leaves a clear gap; the last ends ~60 px above the sources line
   // provider mix: thin stacked bar, only when the field is sourced (today it is estimated everywhere, so it is omitted)
   if (m.providerShare){
     const y = wide ? H - P - 84 : H - P - 112, w = W - 2 * P; let x = P;
