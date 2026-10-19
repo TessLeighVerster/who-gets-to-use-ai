@@ -573,11 +573,11 @@ function projectLocal(v){   // world-local point → page pixels, and whether it
 let _panelRect = null;
 const arcsCtl = createArcs({ world, contact, contactBase: towers.length, contactSpare: CONTACT_EXTRA, isPhone: () => isNarrow(), lowTier: () => quality.tier === "low", project: projectLocal });
 function clearArcs(){ lastPairs = null; arcsCtl.clear(); }
-let routesOn = (() => { try { return localStorage.getItem("routes") !== "0"; } catch (_) { return true; } })();
+let routesOn = true;   // on by default on every visit; the toggle (R) is not remembered
 let lastPairs = null, lastCaption = null;
 function showArcs(pairs, caption){ lastPairs = pairs; lastCaption = caption; if (routesOn) arcsCtl.show(pairs, caption); else arcsCtl.clear(); }   // pairs: [{from:Vector3, to:Vector3, color, dc, label}]
 function setRoutes(on){
-  routesOn = !!on; try { localStorage.setItem("routes", routesOn ? "1" : "0"); } catch (_) {}
+  routesOn = !!on;
   const b = $("#routesToggle"); if (b){ b.classList.toggle("on", routesOn); b.setAttribute("aria-pressed", routesOn); }
   if (routesOn && lastPairs && (state.selected || state.selectedDC)) arcsCtl.show(lastPairs, lastCaption); else arcsCtl.clear();
 }

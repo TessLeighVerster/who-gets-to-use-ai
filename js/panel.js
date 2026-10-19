@@ -249,7 +249,7 @@ function select(ref, keepTab, switching){
   if (!view.autoPan) view.restoreDist = view.tDist;   // remember the zoom we came from, restored when the card closes
   sfx.select();
   if (!ref.isContinent){ showCities(ref); setFocus([t, ...cityTowers, ...state.pinned.map(p => p._tower)]); }
-  if (!ref.isContinent) showArcs(ref.servedBy.map(d => ({from:t.pos, to:d._pos, color:OPERATOR_COLOR[d.operator], dc:d, label:`${OPERATOR_LABEL[d.operator]} · ${d.city}${d.iso === ref.iso ? " · in-country" : d.name === "us-east-1" ? " · frontier models" : " · nearest region"}`})), `Where ${ref.name}'s prompts likely travel`);
+  if (!ref.isContinent) showArcs(ref.servedBy.map(d => ({from:t.pos, to:d._pos, color:OPERATOR_COLOR[d.operator], dc:d, label:`${d.city}<span class="op"> · ${OPERATOR_LABEL[d.operator]}</span>${d.iso === ref.iso ? " · in-country" : d.name === "us-east-1" ? " · frontier" : ""}`})), `Where ${ref.name}'s prompts likely travel`);
   setDCFocus(ref.isContinent ? null : ref.servedBy); retarget(700, false);
   const L = t.n * ref.growthCurve[state.year] * t.dims.h;                                  // this tower's height once settled
   const Lmax = Math.max(L, ...cityTowers.map(ct => ct.n * ct.dims.h * (ct.cityOf === ref ? ref.growthCurve[state.year] : 0)));

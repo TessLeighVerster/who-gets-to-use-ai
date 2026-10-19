@@ -14,9 +14,6 @@
   .title{font-family:"Instrument Serif",Georgia,serif;font-size:80px;font-weight:400;letter-spacing:-.01em;line-height:.98;margin-top:16px}
   .title i{color:#efe9d6}
   .lead{font-size:22px;line-height:1.45;margin-top:26px;max-width:540px;color:rgba(245,245,247,.92)}
-  .stat{font-size:21px;line-height:1.4;margin-top:22px;padding-top:18px;border-top:1px dashed rgba(255,255,255,.22);max-width:540px}
-  .stat b{font-weight:600;color:#f6cf6f}
-  .stat em{font-style:normal;text-decoration:underline;text-decoration-color:rgba(255,255,255,.3);text-underline-offset:5px;text-decoration-thickness:1.5px}
   .foot{position:absolute;left:56px;bottom:44px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:rgba(245,245,247,.6);line-height:1.7}
   .foot b{display:block;font-weight:400;color:rgba(245,245,247,.85)}
   .art{position:relative;background:#2b5cf6}
@@ -29,15 +26,11 @@
     <div class="kicker">whogetstobuildwithai.com</div>
     <div class="title">Who gets to <i>build</i> with AI?</div>
     <div class="lead">Building with AI needs power, data, money and somewhere nearby to run it. Most of the world doesn’t have all four. This globe shows who does, country by country, city by city.</div>
-    <div class="stat" id="stat"></div>
     <div class="foot">Sources · World Bank · Cable.co.uk · Anthropic Economic Index<b>Built with love and concern · Tessa Verster</b></div>
   </div>
   <div class="art" id="art"></div>
 </div>
 <script>
-  // From data/countries.js (subscriptionShareOfIncome, derived from World Bank GDP per capita); keep in step with HERO_STAT in js/main.js.
-  const HERO_STAT = "A $20 AI plan costs <b>0.3%</b> of monthly income in <em>Norway</em> and <b>29.7%</b> in <em>DR Congo</em>.";
-  document.getElementById("stat").innerHTML = HERO_STAT;
 </script>
 </body>
 </html>

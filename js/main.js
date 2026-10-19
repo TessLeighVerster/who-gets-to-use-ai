@@ -24,7 +24,7 @@ const link = c => `<a href="?country=${c.iso}" data-iso="${c.iso}">${c.name}</a>
    ===================================================================================== */
 {
   const A = DATA.countries.find(c => c.iso === HERO_STAT.a), B = DATA.countries.find(c => c.iso === HERO_STAT.b);
-  const hero = $("#heroStat"); if (hero){ const src = $("#heroSrc"); hero.innerHTML = HERO_STAT.text(A, B) + (src ? " " + src.outerHTML : ""); }
+  const hero = $("#heroStat"); if (hero){ const src = $("#heroSrc"); hero.innerHTML = HERO_STAT.text(A, B) + (src ? " " + src.outerHTML : ""); }   // the modal no longer carries the stat (removed 19 Oct 2026); this fills it if it is ever put back
 }
 let app = null;              // { select, showTab, searchEl, syncSheet, isNarrow } once scene.js/panel.js are loaded
 function runPending(){

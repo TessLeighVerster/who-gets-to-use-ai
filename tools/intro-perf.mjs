@@ -26,7 +26,7 @@ for (let i = 0; i < runs; i++){
   const dcl = Math.round(await page.evaluate(() => performance.getEntriesByType("navigation")[0].domContentLoadedEventStart));
   await page.waitForFunction(() => document.getElementById("introGo")?.dataset.ready === "1", { timeout: 60000, polling: 50 });
   const wired = Math.round(await page.evaluate(() => performance.getEntriesByName("intro-wired")[0].startTime));   // from navigation start, recorded by js/intro.js itself
-  const heroText = await page.$eval("#heroStat", e => e.textContent.replace(/\s+/g, " ").trim());
+  const heroText = await page.$eval(".ibox .lead.open", e => e.textContent.replace(/\s+/g, " ").trim());
   const cta = await page.$eval("#introGo", e => e.textContent);
   await page.waitForFunction(() => document.body.classList.contains("ready"), { timeout: 120000, polling: 100 });
   const sceneReady = Math.round(await page.evaluate(() => performance.now()));

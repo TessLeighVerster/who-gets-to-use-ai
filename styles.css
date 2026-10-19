@@ -244,13 +244,7 @@
   .ibox h2{font-size:clamp(40px,5.2vw,74px);line-height:.98;opacity:0;animation:rise .6s var(--ease) .4s forwards;position:relative}
   .ibox .lead{font-family:var(--sans);font-size:clamp(16px,1.3vw,19px);color:rgba(245,245,247,.92);line-height:1.5;margin:22px 0 0;max-width:560px;opacity:0;animation:rise .6s var(--ease) .8s forwards}
   .ibox .lead.open{animation-delay:.55s}
-  .ibox .lead.outro{margin-top:14px;animation-delay:1s}
-  .ibox .hero{font-family:var(--sans);font-weight:400;font-size:clamp(17px,1.45vw,21px);line-height:1.45;letter-spacing:0;margin:18px 0 0;padding:18px 0;border-top:var(--rule);border-bottom:var(--rule);color:var(--text);overflow-wrap:anywhere;opacity:0;animation:rise .6s var(--ease) .7s forwards}
-  .ibox .hero b{font-weight:600;font-style:normal;color:#f6cf6f}
-  .ibox .hero a{color:var(--text);text-decoration:underline;text-decoration-color:rgba(255,255,255,.35);text-underline-offset:3px;text-decoration-thickness:1.5px;transition:text-decoration-color .2s}
-  .ibox .hero a:hover{text-decoration-color:var(--text)}
-  .ibox .hero .src{display:inline;font-family:var(--sans);font-weight:400;font-size:.7em;color:var(--muted);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3);text-underline-offset:3px;margin-left:4px;white-space:nowrap;vertical-align:baseline}
-  .ibox .hero .src:hover{color:var(--text);text-decoration-color:var(--text)}
+  .ibox .lead.outro{margin-top:16px;padding-top:16px;border-top:var(--rule);animation-delay:1s}
   .ibox .cta{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:34px;opacity:0;animation:rise .5s var(--ease) 1.2s forwards}
   #introGo{padding:14px 26px;font-size:15px;letter-spacing:0;text-transform:none;font-weight:600;border-radius:4px;background:#f0ece2;color:#0b0b0d;border-color:#f0ece2}
   #introGo:hover{background:#fff}
@@ -264,11 +258,11 @@
   @keyframes introIn{to{opacity:1}}
   @keyframes shrink{to{transform:scaleX(0)}}
   @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  @media (max-width:900px){ .ibox{grid-template-columns:1fr} .ibox .art{order:-1;min-height:0;height:230px} .ibox .copy{padding:26px 28px 26px} .ibox .lead{font-size:16px} .ibox .hero{font-size:17px} }
-  @media (max-width:700px){ .ibox{width:calc(100% - 28px)} .ibox .copy{padding:22px 22px 22px} .ibox .art{height:200px} .ibox .lead{margin-top:14px} .ibox .hero{margin-top:14px;padding:14px 0} .ibox .cta{margin-top:24px} }
-  @media (max-width:380px){ .ibox{width:calc(100% - 20px)} .ibox .copy{padding:18px 16px 18px} .ibox h2{font-size:36px} .ibox .lead{font-size:15px} .ibox .hero{font-size:16px} .ibox .cta{gap:6px} #introGo{padding:11px 18px;font-size:14px} .btn.ghost{font-size:14px} }
-  @media (max-height:520px){ #intro{padding:8px 0} .ibox{width:calc(100% - 24px)} .ibox .copy{padding:14px 22px 12px} .ibox .art{min-height:0} .ibox .kicker{margin-bottom:8px} .ibox h2{font-size:30px} .ibox .hero{font-size:15px;margin-top:8px;padding:8px 0} .ibox .lead{font-size:14px;margin-top:8px} .ibox .cta{margin-top:14px} .ibox .byline{margin-top:10px} }
-  @media (prefers-reduced-motion:reduce){ #intro,.ibox .kicker,.ibox h2,.ibox .hero,.ibox .lead,.ibox .cta,.ibox .byline,.ibox .art{animation:none;opacity:1} .ibar{display:none} }
+  @media (max-width:900px){ .ibox{grid-template-columns:1fr} .ibox .art{order:-1;min-height:0;height:200px} .ibox .copy{padding:24px 28px 22px} .ibox .lead{font-size:16px} .ibox h2{font-size:40px} }
+  @media (max-width:700px){ #intro{align-items:flex-start} .ibox{width:calc(100% - 28px)} .ibox .copy{padding:18px 20px 18px} .ibox .art{height:150px} .ibox .kicker{margin-bottom:8px} .ibox h2{font-size:36px} .ibox .lead{margin-top:12px;font-size:15px;line-height:1.45} .ibox .lead.outro{margin-top:12px;padding-top:12px} .ibox .cta{margin-top:16px;gap:4px 14px} .ibox .byline{margin-top:16px} }
+  @media (max-width:380px){ .ibox{width:calc(100% - 20px)} .ibox .copy{padding:16px 16px 16px} .ibox h2{font-size:32px} .ibox .lead{font-size:14px} .ibox .art{height:120px} #introGo{padding:11px 18px;font-size:14px} .btn.ghost{font-size:14px} }
+  @media (max-height:520px){ #intro{padding:8px 0} .ibox{width:calc(100% - 24px)} .ibox .copy{padding:14px 22px 12px} .ibox .art{min-height:0} .ibox .kicker{margin-bottom:8px} .ibox h2{font-size:30px} .ibox .lead{font-size:14px;margin-top:8px} .ibox .cta{margin-top:14px} .ibox .byline{margin-top:10px} }
+  @media (prefers-reduced-motion:reduce){ #intro,.ibox .kicker,.ibox h2,.ibox .lead,.ibox .cta,.ibox .byline,.ibox .art{animation:none;opacity:1} .ibar{display:none} }
   /* tooltip */
   /* personalised strip at the top of the visitor's own country card; .est is the shared "modelled estimate" styling (methodology panel uses it too) */
   .card .mine{margin:0 0 14px;padding:12px 14px;border-radius:14px;background:var(--fill);border:1px solid var(--line);font-size:14px;line-height:1.45;color:var(--text)}
@@ -283,7 +277,7 @@
   .arclabel i{width:7px;height:7px;border-radius:2px;display:inline-block;box-shadow:inset 0 -1px 0 rgba(0,0,0,.3)}
   .arclabel.dim{opacity:.45!important}
   .arclabel.caption{font-family:var(--serif);font-style:italic;text-transform:none;letter-spacing:0;font-size:13px;color:rgba(245,245,247,.85);background:transparent;border:0;padding:0}
-  @media (max-width:600px){ .arclabel{font-size:9px;padding:3px 6px} .arclabel.caption{font-size:12px} }
+  @media (max-width:600px){ .arclabel{font-size:9px;padding:3px 6px} .arclabel .op{display:none} .arclabel.caption{font-size:12px} }   /* phones: city only; the dot carries the operator */
   /* page share: top right, above the panel; native share sheet where there is one, otherwise copy the link */
   #siteShare{position:fixed;top:18px;right:24px;z-index:9;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;background:#efe9d6;color:#0b0b0d;border:0;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.45)}
   #siteShare:hover{background:#fff}

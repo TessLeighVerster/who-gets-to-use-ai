@@ -1,7 +1,7 @@
 /* The intro overlay, wired as early as possible: this module depends only on js/geo.js and data/countryNames.js
    (a few KB), so the overlay is usable long before Three.js, the scene and the full data arrive. Anything that needs
    the scene (opening a country card, focusing search) is queued as `intro.pending` and run by js/main.js once the
-   first frame has rendered. The hero sentence itself is static HTML; main.js re-renders it from the data (HERO_STAT).
+   first frame has rendered.
 
    The overlay does not close by itself. URL switches: ?intro=0 or ?nointro skips the intro, ?intro=1 forces it even if it was seen this session.
    Storage: one sessionStorage flag, "introSeen". No cookies, no network. */
@@ -40,13 +40,6 @@ function labelMiddleTower(iso){
 const seen = (() => { try { return sessionStorage.getItem("introSeen") === "1"; } catch (_) { return false; } })();
 const skip = params.get("intro") === "0" || params.has("nointro") || params.has("country") || (params.get("intro") !== "1" && seen);   // a deep link goes straight to its country
 
-// beat 1: country names in the claim open that country; the source marker opens the methodology panel (?panel=methodology)
-$("#heroStat").addEventListener("click", e => {
-  const a = e.target.closest("a"); if (!a) return;
-  e.preventDefault();
-  if (a.dataset.iso) dismiss({ select: a.dataset.iso });
-  else if (a.id === "heroSrc"){ track("methodology"); history.replaceState(null, "", "?panel=methodology"); window.dispatchEvent(new CustomEvent("open-panel", { detail: "methodology" })); dismiss(); }   // TODO(methodology panel): listen for this event and open it
-});
 // beat 3: the call to action names the visitor's own country when the time zone or browser language gives one away
 const iso = detectCountry(new Set(Object.keys(COUNTRY_NAMES)));
 intro.countryIso = iso;
